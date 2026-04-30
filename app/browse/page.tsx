@@ -5,24 +5,40 @@ import { creators } from "../data/creators";
 import CreatorCard from "../components/CreatorCard";
 import { getFollowing, toggleFollowing } from "../lib/following";
 
+// 🧠 NEW: backend intelligence layer
+import {
+  calculateCreatorScore,
+  getCreatorTier,
+  getCreatorPrice,
+  getCreatorTrend,
+} from "../lib/posts";
+
 export default function BrowsePage() {
   const [following, setFollowing] = useState<string[]>([]);
   const [search, setSearch] = useState("");
   const [activeNiche, setActiveNiche] = useState("");
 
-  // Load follow state once on mount
   useEffect(() => {
     setFollowing(getFollowing());
   }, []);
 
   const handleFollow = (name: string) => {
     const updated = toggleFollowing(name);
-    setFollowing([...updated]); // ensure re-render consistency
+    setFollowing([...updated]);
   };
 
   const niches = ["Music", "Fitness", "Tech", "Comedy"];
 
-  const filteredCreators = creators.filter((c) => {
+  // 🧠 ENRICHED CREATOR DATA (C17-A upgrade)
+  const enrichedCreators = creators.map((c) => ({
+    ...c,
+    score: calculateCreatorScore(c.slug),
+    tier: getCreatorTier(c.slug),
+    price: getCreatorPrice(c.slug),
+    trend: getCreatorTrend(c.slug),
+  }));
+
+  const filteredCreators = enrichedCreators.filter((c) => {
     const matchesSearch = c.name
       .toLowerCase()
       .includes(search.toLowerCase());
@@ -42,7 +58,7 @@ export default function BrowsePage() {
           Browse Creators
         </h1>
         <p className="text-gray-500 mt-2">
-          Discover and follow creators across categories
+          Discover creators powered by ranking intelligence
         </p>
       </div>
 
@@ -88,14 +104,16 @@ export default function BrowsePage() {
 
       {/* GRID */}
       <div className="grid md:grid-cols-3 gap-8">
-        {filteredCreators.map((c) => (
-          <CreatorCard
-            key={c.name}
-            creator={c}
-            isFollowing={following.includes(c.name)}
-            onToggleFollow={handleFollow}
-          />
-        ))}
+        {filteredCreators
+          .sort((a, b) => b.score - a.score) // 🧠 NEW: backend ranking
+          .map((c) => (
+            <CreatorCard
+              key={c.name}
+              creator={c}
+              isFollowing={following.includes(c.name)}
+              onToggleFollow={handleFollow}
+            />
+          ))}
       </div>
 
     </main>

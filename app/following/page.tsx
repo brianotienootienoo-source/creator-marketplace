@@ -6,6 +6,14 @@ import CreatorCard from "@/app/components/CreatorCard";
 import { getFollowing, toggleFollowing } from "@/app/lib/following";
 import Link from "next/link";
 
+// 🧠 C17-A intelligence layer
+import {
+  calculateCreatorScore,
+  getCreatorTier,
+  getCreatorPrice,
+  getCreatorTrend,
+} from "@/app/lib/posts";
+
 export default function FollowingPage() {
   const [following, setFollowing] = useState<string[]>([]);
 
@@ -18,9 +26,17 @@ export default function FollowingPage() {
     setFollowing([...updated]);
   };
 
-  const followedCreators = creators.filter((c) =>
-    following.includes(c.name)
-  );
+  // 🧠 ENRICH FOLLOWED CREATORS
+  const followedCreators = creators
+    .filter((c) => following.includes(c.name))
+    .map((c) => ({
+      ...c,
+      score: calculateCreatorScore(c.slug),
+      tier: getCreatorTier(c.slug),
+      price: getCreatorPrice(c.slug),
+      trend: getCreatorTrend(c.slug),
+    }))
+    .sort((a, b) => b.score - a.score);
 
   return (
     <main className="max-w-7xl mx-auto px-6 py-10">
@@ -29,7 +45,7 @@ export default function FollowingPage() {
       <div className="mb-10">
         <h1 className="text-4xl font-bold">Following</h1>
         <p className="text-gray-500 mt-2">
-          Creators you are currently following
+          Your personalized creator network
         </p>
       </div>
 
@@ -40,7 +56,7 @@ export default function FollowingPage() {
             You’re not following anyone yet
           </h2>
           <p className="text-gray-500 mb-6">
-            Start exploring creators to build your feed
+            Start exploring creators to build your network feed
           </p>
 
           <Link

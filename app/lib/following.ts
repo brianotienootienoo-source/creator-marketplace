@@ -1,21 +1,110 @@
-const KEY = "following_creators";
+const KEY = "following_graph";
 
-export function getFollowing(): string[] {
-  if (typeof window === "undefined") return [];
-  return JSON.parse(localStorage.getItem(KEY) || "[]");
+/**
+ * Structure:
+ * {
+ *   [userId: string]: string[] // creatorSlugs
+ * }
+ */
+type FollowGraph = Record<string, string[]>;
+
+/* -----------------------------
+   STORAGE HELPERS
+------------------------------*/
+
+function getGraph(): FollowGraph {
+  if (typeof window === "undefined") return {};
+  return JSON.parse(localStorage.getItem(KEY) || "{}");
 }
 
-export function toggleFollowing(name: string): string[] {
-  const current = getFollowing();
+function saveGraph(graph: FollowGraph) {
+  localStorage.setItem(KEY, JSON.stringify(graph));
+}
 
-  const updated = current.includes(name)
-    ? current.filter((n) => n !== name)
-    : [...current, name];
+/* -----------------------------
+   CORE API (C16 STEP 2)
+------------------------------*/
 
-  localStorage.setItem(KEY, JSON.stringify(updated));
+/**
+ * Follow a creator
+ */
+export function followCreator(userId: string, creatorSlug: string) {
+  const graph = getGraph();
+
+  const current = graph[userId] || [];
+
+  if (!current.includes(creatorSlug)) {
+    graph[userId] = [...current, creatorSlug];
+  }
+
+  saveGraph(graph);
+  return graph[userId];
+}
+
+/**
+ * Unfollow a creator
+ */
+export function unfollowCreator(userId: string, creatorSlug: string) {
+  const graph = getGraph();
+
+  const current = graph[userId] || [];
+
+  graph[userId] = current.filter((slug) => slug !== creatorSlug);
+
+  saveGraph(graph);
+  return graph[userId];
+}
+
+/**
+ * Toggle follow state
+ */
+export function toggleFollow(userId: string, creatorSlug: string) {
+  const graph = getGraph();
+
+  const current = graph[userId] || [];
+
+  const updated = current.includes(creatorSlug)
+    ? current.filter((s) => s !== creatorSlug)
+    : [...current, creatorSlug];
+
+  graph[userId] = updated;
+
+  saveGraph(graph);
   return updated;
 }
 
-export function isFollowing(name: string): boolean {
-  return getFollowing().includes(name);
+/**
+ * Check follow state
+ */
+export function isFollowing(userId: string, creatorSlug: string): boolean {
+  const graph = getGraph();
+  return (graph[userId] || []).includes(creatorSlug);
+}
+
+/**
+ * Get full following list (new API)
+ */
+export function getFollowingList(userId: string): string[] {
+  const graph = getGraph();
+  return graph[userId] || [];
+}
+
+/* =========================================================
+   🔁 COMPATIBILITY LAYER (fixes your current UI errors)
+=========================================================*/
+
+/**
+ * Legacy support for existing UI pages
+ * (Browse / Following pages still use old function names)
+ */
+
+export function getFollowing(userId: string = "default"): string[] {
+  return getFollowingList(userId);
+}
+
+export function toggleFollowing(
+  creatorSlug: string,
+  userId: string = "default"
+): string[] {
+  return toggleFollow(userId, creatorSlug);
 }

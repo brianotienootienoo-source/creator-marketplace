@@ -6,48 +6,59 @@ import { usePathname } from "next/navigation";
 export default function Navbar() {
   const pathname = usePathname();
 
-  const isActive = (path: string) =>
+  const linkClass = (path: string) =>
     pathname === path
-      ? "text-black border-b-2 border-black pb-1"
-      : "text-gray-500 hover:text-black";
+      ? "text-[var(--primary)] font-medium"
+      : "text-gray-500 hover:text-[var(--primary)] transition";
 
   return (
-    <nav className="flex justify-between items-center px-6 py-4 border-b">
+    <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-100">
 
-      {/* Brand */}
-      <Link href="/" className="font-bold text-xl">
-        CreatorMarket
-      </Link>
+      <div className="max-w-6xl mx-auto flex justify-between items-center px-6 py-3">
 
-      {/* Links */}
-      <div className="flex gap-6 text-sm items-center">
-
-        <Link href="/" className={isActive("/")}>
-          Home
+        {/* BRAND */}
+        <Link href="/" className="font-bold text-lg tracking-tight">
+          CreatorMarket
         </Link>
 
-        <Link href="/feed" className={isActive("/feed")}>
-          Feed
-        </Link>
+        {/* LINKS */}
+        <div className="flex gap-6 text-sm items-center">
 
-        <Link href="/browse" className={isActive("/browse")}>
-          Browse
-        </Link>
+          <Link href="/" className={linkClass("/")}>
+            Home
+          </Link>
 
-        <Link href="/following" className={isActive("/following")}>
-          Following
-        </Link>
+          <Link href="/feed" className={linkClass("/feed")}>
+            Feed
+          </Link>
 
-        <Link
-          href="/join"
-          className={`px-3 py-1 rounded-lg transition ${
-            pathname === "/join"
-              ? "bg-gray-800 text-white"
-              : "bg-black text-white hover:bg-gray-800"
-          }`}
-        >
-          Join
-        </Link>
+          <Link href="/browse" className={linkClass("/browse")}>
+            Browse
+          </Link>
+
+          <Link href="/following" className={linkClass("/following")}>
+            Following
+          </Link>
+
+          {/* CTA */}
+          <Link
+            href="/join"
+            className="
+              bg-[var(--primary)]
+              text-white
+              px-4 py-1.5
+              rounded-full
+              text-sm
+              shadow-md
+              hover:shadow-lg
+              hover:translate-y-[-1px]
+              transition
+            "
+          >
+            Join
+          </Link>
+
+        </div>
 
       </div>
     </nav>

@@ -13,7 +13,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className="min-h-screen bg-white text-gray-900">
+      <body className="min-h-screen bg-[var(--bg)] text-[var(--text)]">
 
         {/* Navbar is now separate */}
         <Navbar />
