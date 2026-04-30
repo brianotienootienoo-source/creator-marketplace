@@ -1,4 +1,40 @@
-export const creators = [
+/* =========================================================
+   C16 STEP 1 — IDENTITY LAYER (CREATORS BACKEND MODEL)
+=========================================================*/
+
+/**
+ * 🧠 CORE CREATOR MODEL (single source of truth)
+ */
+export type CreatorProfile = {
+  name: string;
+  slug: string;
+  niche: string;
+  followers: string;
+  rating: string;
+  avatar: string;
+  bio: string;
+
+  posts: CreatorPost[];
+};
+
+/**
+ * 📦 POST MODEL (aligned with backend engine)
+ */
+export type CreatorPost = {
+  id: number;
+  type: "original" | "viral";
+  title: string;
+  content?: string;
+  url?: string;
+  platform?: "youtube" | "tiktok" | "instagram";
+  likes: number;
+};
+
+/* =========================================================
+   🧱 RAW SEED DATA (still used for UI, now strongly typed)
+========================================================= */
+
+export const creators: CreatorProfile[] = [
   {
     name: "Alex Beats",
     slug: "alex-beats",
@@ -123,8 +159,7 @@ export const creators = [
         id: 1,
         type: "original",
         title: "POV: group chats 😂",
-        content:
-          "When you type ‘lol’ but didn’t even smile.",
+        content: "When you type ‘lol’ but didn’t even smile.",
         likes: 512,
       },
       {
@@ -139,8 +174,7 @@ export const creators = [
         id: 3,
         type: "original",
         title: "Adulting is a scam",
-        content:
-          "Why do we pay bills just to survive? Someone explain.",
+        content: "Why do we pay bills just to survive? Someone explain.",
         likes: 443,
       },
     ],
