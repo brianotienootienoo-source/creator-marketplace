@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 /* =========================================================
-   🎬 PREMIUM MEDIA UI SYSTEM v2 (NETFLIX + TIKTOK HYBRID)
+   🎬 PREMIUM MEDIA UI SYSTEM v3 (NETFLIX HOVER UPGRADE)
    ========================================================= */
 
 :root {
@@ -31,8 +31,7 @@ html, body {
 }
 
 /* =========================================================
-   🎬 GLOBAL MEDIA GRID BEHAVIOR
-   (THIS FIXES THE "TEXT DOCUMENT FEEL")
+   GLOBAL LAYOUT
    ========================================================= */
 
 main {
@@ -41,7 +40,7 @@ main {
 }
 
 /* =========================================================
-   🧱 PREMIUM CARD SURFACE SYSTEM
+   🧱 PREMIUM CARD SYSTEM
    ========================================================= */
 
 .ui-card {
@@ -59,7 +58,7 @@ main {
 }
 
 /* =========================================================
-   🎥 MEDIA CARDS (THIS IS WHAT YOU WERE MISSING)
+   🎥 MEDIA CARDS (NETFLIX-STYLE UPGRADE)
    ========================================================= */
 
 .media-card {
@@ -68,40 +67,63 @@ main {
   overflow: hidden;
   background: #f3f4f6;
   min-height: 180px;
-  transition: all 0.3s ease;
+
+  transition: transform 0.35s ease, box-shadow 0.35s ease;
+  cursor: pointer;
 }
 
+/* IMAGE */
 .media-card img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 0.4s ease;
+  transition: transform 0.5s ease;
 }
 
-.media-card:hover img {
-  transform: scale(1.08);
-}
-
-/* dark overlay like Netflix */
+/* OVERLAY */
 .media-overlay {
   position: absolute;
   inset: 0;
+
   background: linear-gradient(
     to top,
     rgba(0,0,0,0.65),
     transparent 60%
   );
+
+  transition: background 0.3s ease;
+}
+
+/* 🔥 HOVER EFFECT */
+.media-card:hover {
+  transform: scale(1.06) translateY(-4px);
+  z-index: 10;
+  box-shadow: 0 25px 60px rgba(0,0,0,0.25);
+}
+
+/* IMAGE ZOOM */
+.media-card:hover img {
+  transform: scale(1.12);
+}
+
+/* OVERLAY DARKENS */
+.media-card:hover .media-overlay {
+  background: linear-gradient(
+    to top,
+    rgba(0,0,0,0.85),
+    transparent 70%
+  );
 }
 
 /* =========================================================
-   🧭 ROW SCROLL SYSTEM (NETFLIX STYLE)
+   🧭 ROW SCROLL (FIXED FOR HOVER)
    ========================================================= */
 
 .row-scroll {
   display: flex;
   gap: 14px;
   overflow-x: auto;
-  padding-bottom: 10px;
+  padding: 10px 6px 20px 6px;
   scroll-snap-type: x mandatory;
 }
 
@@ -111,7 +133,7 @@ main {
 }
 
 /* =========================================================
-   🔘 PREMIUM BUTTONS (INSTAGRAM + MODERN LIFT)
+   🔘 BUTTONS
    ========================================================= */
 
 .btn-primary {
@@ -132,7 +154,7 @@ main {
 }
 
 /* =========================================================
-   👤 AVATAR UPGRADE (NO MORE FLAT CIRCLES)
+   👤 AVATAR
    ========================================================= */
 
 .avatar {
@@ -153,8 +175,10 @@ main {
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(6px); }
   to { opacity: 1; transform: translateY(0); }
-}/* =========================================================
-   🔘 LIKE / ACTION BUTTON FIX (MISSING PIECE)
+}
+
+/* =========================================================
+   ❤️ ACTION BUTTONS
    ========================================================= */
 
 .btn-like {

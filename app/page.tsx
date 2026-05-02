@@ -7,8 +7,6 @@ import { creators } from "@/app/data/creators";
 import { getGlobalFeed } from "@/app/lib/feedEngine";
 import { getPosts } from "@/app/lib/posts";
 
-import Card from "@/app/components/ui/Card";
-import Button from "@/app/components/ui/Button";
 import Avatar from "@/app/components/ui/Avatar";
 import Section from "@/app/components/ui/Section";
 
@@ -62,7 +60,7 @@ export default function HomePage() {
 
       {/* HERO */}
       <Section>
-        <Card className="p-8 bg-gradient-to-r from-blue-500 to-sky-400 text-white">
+        <div className="ui-card p-10 bg-gradient-to-r from-blue-500 to-sky-400 text-white border-none">
           <h1 className="text-3xl font-bold">
             {heroSlides[featuredIndex].title}
           </h1>
@@ -71,16 +69,20 @@ export default function HomePage() {
             {heroSlides[featuredIndex].desc}
           </p>
 
-          <div className="mt-4 flex gap-3">
-            <Button>
-              <Link href="/feed">Enter Feed</Link>
-            </Button>
+          <div className="mt-5 flex gap-3">
+            <Link href="/feed">
+              <button className="btn-primary">
+                Enter Feed
+              </button>
+            </Link>
 
-            <Button variant="secondary">
-              <Link href="/market">Explore Market</Link>
-            </Button>
+            <Link href="/market">
+              <button className="btn-primary bg-white text-blue-600 shadow-none">
+                Explore Market
+              </button>
+            </Link>
           </div>
-        </Card>
+        </div>
       </Section>
 
       {/* CATEGORY STRIP */}
@@ -94,65 +96,85 @@ export default function HomePage() {
             "Market",
             "Opportunities",
           ].map((cat) => (
-            <Card key={cat} className="px-4 py-2 whitespace-nowrap">
+            <div
+              key={cat}
+              className="ui-card px-5 py-2 whitespace-nowrap border-none shadow-sm"
+            >
               <p className="text-sm">{cat}</p>
-            </Card>
+            </div>
           ))}
         </div>
       </Section>
 
-      {/* TRENDING */}
+      {/* 🔥 TRENDING (MEDIA STYLE — FIXED) */}
       <Section title="Trending Now">
-        <div className="flex gap-4 overflow-x-auto">
+        <div className="row-scroll">
+
           {feed.map((p) => (
-            <Card
+            <div
               key={p.id}
-              className="min-w-[220px] p-4 hover:scale-[1.02] transition"
+              className="media-card w-[260px] h-[160px]"
             >
-              <p className="font-semibold">{p.title}</p>
-              <p className="text-xs text-gray-500 mt-2">
-                ❤️ {p.likes}
-              </p>
-            </Card>
+              {/* IMAGE */}
+              <img
+                src={`https://picsum.photos/400/300?random=${p.id}`}
+                alt={p.title}
+              />
+
+              {/* DARK OVERLAY */}
+              <div className="media-overlay" />
+
+              {/* TEXT */}
+              <div className="absolute bottom-3 left-3 right-3 text-white">
+                <p className="text-sm font-semibold leading-tight">
+                  {p.title}
+                </p>
+
+                <p className="text-xs opacity-80 mt-1">
+                  ❤️ {p.likes}
+                </p>
+              </div>
+            </div>
           ))}
+
         </div>
       </Section>
 
       {/* MARKET */}
       <Section title="Market Snapshot">
-        <div className="grid grid-cols-2 gap-4">
-          <Card className="p-4">
+        <div className="grid grid-cols-2 gap-5">
+          <div className="ui-card p-5 border-none">
             <p className="font-semibold">Top Niches</p>
             <p className="text-sm text-gray-500">
               Fashion, Tech, Auto
             </p>
-          </Card>
+          </div>
 
-          <Card className="p-4">
+          <div className="ui-card p-5 border-none">
             <p className="font-semibold">Active Deals</p>
             <p className="text-sm text-gray-500">
               12 open campaigns
             </p>
-          </Card>
+          </div>
         </div>
       </Section>
 
       {/* CREATORS */}
       <Section title="Top Creators This Week">
-        <div className="flex gap-4 overflow-x-auto">
+        <div className="flex gap-5 overflow-x-auto">
           {creatorShuffle.map((c) => (
             <Link key={c.slug} href={`/creator/${c.slug}`}>
-              <Card className="p-4 min-w-[150px] text-center">
-                <Avatar src={c.avatar} size={50} />
+              <div className="ui-card p-5 min-w-[170px] text-center border-none">
+                <Avatar src={c.avatar} size={52} />
 
-                <p className="mt-2 font-semibold text-sm">
+                <p className="mt-3 font-semibold text-sm">
                   {c.name}
                 </p>
 
                 <p className="text-xs text-gray-500">
                   Score: {c.score}
                 </p>
-              </Card>
+              </div>
             </Link>
           ))}
         </div>

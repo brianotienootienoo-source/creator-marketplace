@@ -1,19 +1,19 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { creators } from "@/app/data/creators";
+import Link from "next/link";
 
+import { creators } from "@/app/data/creators";
 import { likePost, addComment } from "@/app/lib/posts";
 import { subscribeToFeedUpdates } from "@/app/lib/feedChannel";
 import { getGlobalFeed } from "@/app/lib/feedEngine";
 import { seedTestData } from "@/app/lib/seed";
-import Link from "next/link";
 
 export default function FeedPage() {
   const [posts, setPosts] = useState<any[]>([]);
   const [commentText, setCommentText] = useState<Record<string, string>>({});
-  const [likedPosts, setLikedPosts] = useState<Record<string, boolean>>({});
 
+  /* LOAD FEED */
   const loadPosts = () => {
     const feed = getGlobalFeed();
     setPosts(feed);
@@ -29,14 +29,17 @@ export default function FeedPage() {
 
     loadPosts();
     subscribeToFeedUpdates(loadPosts);
+
+    window.addEventListener("focus", loadPosts);
+    return () => window.removeEventListener("focus", loadPosts);
   }, []);
 
   const getCreator = (slug: string) =>
     creators.find((c) => c.slug === slug);
 
   const handleLike = (postId: string) => {
-    setLikedPosts((prev) => ({ ...prev, [postId]: true }));
     likePost(postId);
+    loadPosts();
   };
 
   const handleComment = (postId: string) => {
@@ -49,27 +52,23 @@ export default function FeedPage() {
       ...prev,
       [postId]: "",
     }));
-  };
 
-  const getTrendIcon = (v: string) => {
-    if (v === "exploding") return "🚀";
-    if (v === "viral") return "📈";
-    if (v === "warming") return "🔥";
-    if (v === "cold") return "🧊";
-    return "➖";
+    loadPosts();
   };
 
   return (
     <main className="max-w-2xl mx-auto px-4 py-6">
 
+      {/* HEADER */}
       <div className="mb-6">
-        <h1 className="text-xl font-bold">Home</h1>
-        <p className="text-xs text-gray-500">
-          Creator–Brand intelligence feed
+        <h1 className="text-xl font-bold">Feed</h1>
+        <p className="text-sm text-gray-500">
+          Creator–Brand intelligence
         </p>
       </div>
 
-      <div className="space-y-5">
+      {/* FEED */}
+      <div className="space-y-6">
 
         {posts.map((post) => {
           const creator = getCreator(post.creatorSlug);
@@ -78,89 +77,96 @@ export default function FeedPage() {
           return (
             <div
               key={post.id}
-              className="ui-card p-4 fade-in"
+              className="ui-card p-5 fade-in"
             >
 
               {/* CREATOR */}
               <Link
                 href={`/creator/${creator.slug}`}
-                className="flex items-start gap-3"
+                className="flex items-center gap-3 mb-3"
               >
                 <img
                   src={creator.avatar}
-                  className="w-9 h-9 rounded-full object-cover"
+                  className="w-10 h-10 rounded-full object-cover"
                 />
 
-                <div className="flex-1">
+                <div>
+                  <p className="font-semibold text-sm">
+                    {creator.name}
+                  </p>
 
-                  <div className="flex items-center gap-2">
-                    <p className="font-semibold text-sm">
-                      {creator.name}
-                    </p>
-
-                    <p className="text-xs text-gray-500">
-                      @{creator.slug}
-                    </p>
-
-                    <span className="text-xs px-2 py-[2px] bg-gray-100 rounded-full">
-                      {post.ui?.virality}
-                    </span>
-                  </div>
-
-                  <div className="flex gap-3 text-[11px] text-gray-500 mt-1">
-                    <span>
-                      {getTrendIcon(post.ui?.virality)} {post.ui?.virality}
-                    </span>
-
-                    <span>
-                      ❤️ {Math.round(post.ui?.engagement || 0)}
-                    </span>
-
-                    <span>
-                      score {post.ui?.feedScore ?? 0}
-                    </span>
-                  </div>
-
+                  <p className="text-xs text-gray-500">
+                    @{creator.slug}
+                  </p>
                 </div>
               </Link>
 
               {/* CONTENT */}
-              <div className="ml-12 mt-3">
+              <h3 className="font-semibold mb-2">
+                {post.title}
+              </h3>
 
-                <h3 className="text-sm font-semibold mb-1">
-                  {post.title}
-                </h3>
+              {post.type === "original" && (
+                <p className="text-gray-600 text-sm">
+                  {post.content}
+                </p>
+              )}
 
-                {post.type === "original" && (
-                  <p className="text-sm text-gray-700">
-                    {post.content}
-                  </p>
-                )}
+              {post.type === "viral" && post.url && (
+                <a
+                  href={post.url}
+                  target="_blank"
+                  className="text-blue-500 text-sm"
+                >
+                  View content →
+                </a>
+              )}
 
-                {post.type === "viral" && post.url && (
-                  <a
-                    href={post.url}
-                    target="_blank"
-                    className="text-xs text-blue-500 hover:underline"
-                  >
-                    View external content →
-                  </a>
-                )}
+              {/* ACTIONS */}
+              <div className="flex items-center gap-6 mt-4 text-sm">
 
-                {/* ACTIONS */}
-                <div className="flex items-center gap-5 mt-4 text-xs text-gray-500">
+                <button
+                  onClick={() => handleLike(post.id)}
+                  className="btn-like"
+                >
+                  ❤️ {post.likes || 0}
+                </button>
+
+                <span className="text-gray-500">
+                  💬 {post.comments?.length || 0}
+                </span>
+
+              </div>
+
+              {/* COMMENTS */}
+              <div className="mt-4 space-y-2">
+
+                {(post.comments || []).map((c: any) => (
+                  <div key={c.id} className="text-sm text-gray-600">
+                    <span className="font-semibold">{c.user}</span>{" "}
+                    {c.text}
+                  </div>
+                ))}
+
+                <div className="flex gap-2 mt-2">
+                  <input
+                    className="flex-1 border rounded-xl px-3 py-2 text-sm"
+                    placeholder="Reply..."
+                    value={commentText[post.id] || ""}
+                    onChange={(e) =>
+                      setCommentText((prev) => ({
+                        ...prev,
+                        [post.id]: e.target.value,
+                      }))
+                    }
+                  />
 
                   <button
-                    onClick={() => handleLike(post.id)}
-                    className="btn-like"
+                    onClick={() => handleComment(post.id)}
+                    className="btn-primary"
                   >
-                    ❤️ {post.likes || 0}
+                    Post
                   </button>
-
-                  <span>
-                    💬 {post.comments?.length || 0}
-                  </span>
-
                 </div>
 
               </div>
