@@ -1,65 +1,120 @@
-import Image from "next/image";
+import MarketplaceCard from "@/app/components/ui/MarketplaceCard";
+import { buildFeedV2 } from "@/app/lib/feedV2";
 
 export default function Home() {
+  const feed = buildFeedV2() || [];
+
+  const creators = feed.filter((f) => f?.type === "creator");
+  const brands = feed.filter((f) => f?.type === "brand");
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
+    <main style={{ padding: 40, fontFamily: "sans-serif" }}>
+
+      {/* HERO */}
+      <section style={{ marginBottom: 40 }}>
+        <h1 style={{ fontSize: 32, fontWeight: 700 }}>
+          Creator–Brand Marketplace
+        </h1>
+        <p style={{ marginTop: 10, color: "#555" }}>
+          Connect brands with creators, musicians, and comedians for real-world deals.
+        </p>
+      </section>
+
+      {/* FEED V2 */}
+      <section style={{ marginBottom: 40 }}>
+        <h2>Discover Marketplace</h2>
+
+        <div style={{ display: "flex", gap: 12, overflowX: "auto", marginTop: 10 }}>
+          {feed.map((item) => (
+            <div
+              key={`${item?.type}-${item?.id}`}
+              style={{
+                minWidth: 240,
+                padding: 14,
+                border: "1px solid #eee",
+                borderRadius: 12,
+                background: "#fff",
+              }}
             >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+              <p style={{ fontWeight: 600 }}>{item?.title}</p>
+
+              <p style={{ fontSize: 12, color: "#666", marginTop: 6 }}>
+                {item?.subtitle}
+              </p>
+
+              <p style={{ fontSize: 11, marginTop: 8, color: "#999" }}>
+                Type: {item?.type} • Score: {item?.score}
+              </p>
+            </div>
+          ))}
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
+      </section>
+
+      {/* BRAND LAYER (SAFE - NO CLIENT ACTIONS HERE) */}
+      <section style={{ marginBottom: 40 }}>
+        <h2>Brand Opportunities</h2>
+
+        <div style={{ display: "flex", gap: 12, overflowX: "auto", marginTop: 10 }}>
+          {brands.map((b, i) => (
+            <MarketplaceCard
+              key={`${b?.id}-${i}`}
+              title={b?.title}
+              subtitle={b?.subtitle}
+              footer="Live Brand Deal"
+              badge="Brand"
+              actionLabel="Apply"
             />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+          ))}
         </div>
-      </main>
-    </div>
+      </section>
+
+      {/* SNAPSHOT */}
+      <section style={{ marginBottom: 40 }}>
+        <h2>Market Snapshot</h2>
+
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginTop: 10 }}>
+          <MarketplaceCard
+            title="Trending Niches"
+            subtitle="Fashion, Music, Comedy"
+            badge="Market"
+          />
+
+          <MarketplaceCard
+            title="Active Campaigns"
+            subtitle="Live brand deals + creator bids"
+            badge="Live"
+          />
+        </div>
+      </section>
+
+      {/* LIVE CREATORS */}
+      <section style={{ marginTop: 40 }}>
+        <h2>Live Creators</h2>
+
+        <div style={{ display: "flex", gap: 14, overflowX: "auto", paddingBottom: 10 }}>
+          {creators.slice(0, 12).map((c, i) => (
+            <div
+              key={`${c?.id}-${i}`}
+              style={{ minWidth: 90, textAlign: "center" }}
+            >
+              <img
+                src={c?.image}
+                style={{
+                  width: 60,
+                  height: 60,
+                  borderRadius: "50%",
+                  objectFit: "cover",
+                  border: "2px solid #eee",
+                }}
+              />
+              <p style={{ fontSize: 11, marginTop: 6 }}>
+                {c?.title}
+              </p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+    </main>
   );
 }
