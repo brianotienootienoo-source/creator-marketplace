@@ -1,0 +1,32 @@
+export const campaigns = [
+  {
+    id: "campaign-1",
+    brandId: "Netflix",
+    title: "Promote New Thriller Series",
+    niche: "Film & TV creators",
+    budget: "$300 - $800",
+    deliverables: "1 TikTok + 1 Reel",
+    deadline: "5 days left",
+    image: "https://picsum.photos/300/200",
+  },
+  {
+    id: "campaign-2",
+    brandId: "Nike",
+    title: "Launch Performance Campaign",
+    niche: "Fitness & lifestyle creators",
+    budget: "$200 - $1000",
+    deliverables: "2 Instagram posts",
+    deadline: "7 days left",
+    image: "https://picsum.photos/300/201",
+  },
+  {
+    id: "campaign-3",
+    brandId: "Spotify",
+    title: "New Artist Push Campaign",
+    niche: "Music creators",
+    budget: "$150 - $600",
+    deliverables: "3 short-form videos",
+    deadline: "4 days left",
+    image: "https://picsum.photos/300/202",
+  },
+];

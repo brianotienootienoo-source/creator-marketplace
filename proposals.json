@@ -1,122 +1,20 @@
 [
   {
-    "id": "1777844864203",
-    "creatorId": "demo-creator",
-    "brandId": "Netflix",
-    "message": "Hey! I’d love to collaborate with your brand.",
-    "status": "pending",
-    "createdAt": "2026-05-03T21:47:44.203Z"
-  },
-  {
-    "id": "1777845637285",
-    "creatorId": "demo-creator",
-    "brandId": "Netflix",
-    "message": "Hey! I’d love to collaborate with your brand.",
-    "status": "pending",
-    "createdAt": "2026-05-03T22:00:37.285Z"
-  },
-  {
-    "id": "1777845761713",
-    "creatorId": "demo-creator",
-    "brandId": "Netflix",
-    "message": "Hey! I’d love to collaborate with your brand.",
-    "status": "pending",
-    "createdAt": "2026-05-03T22:02:41.713Z"
-  },
-  {
-    "id": "1777845914038",
-    "creatorId": "demo-creator",
-    "brandId": "Nike",
-    "message": "Hey! I’d love to collaborate with your brand.",
-    "status": "pending",
-    "createdAt": "2026-05-03T22:05:14.038Z"
-  },
-  {
-    "id": "1777845914919",
-    "creatorId": "demo-creator",
-    "brandId": "Spotify",
-    "message": "Hey! I’d love to collaborate with your brand.",
-    "status": "pending",
-    "createdAt": "2026-05-03T22:05:14.919Z"
-  },
-  {
-    "id": "1777846101641",
-    "creatorId": "demo-creator",
-    "brandId": "Netflix",
-    "message": "Hey! I’d love to collaborate with your brand.",
-    "status": "pending",
-    "createdAt": "2026-05-03T22:08:21.642Z"
-  },
-  {
-    "id": "1777846114172",
-    "creatorId": "demo-creator",
-    "brandId": "Netflix",
-    "message": "Hey! I’d love to collaborate with your brand.",
-    "status": "pending",
-    "createdAt": "2026-05-03T22:08:34.172Z"
-  },
-  {
-    "id": "1777846135226",
-    "creatorId": "demo-creator",
-    "brandId": "Netflix",
-    "message": "Hey! I’d love to collaborate with your brand.",
-    "status": "pending",
-    "createdAt": "2026-05-03T22:08:55.226Z"
-  },
-  {
-    "id": "1777846452140",
-    "creatorId": "demo-creator",
-    "brandId": "Netflix",
-    "message": "Hey! I’d love to collaborate with your brand.",
-    "status": "pending",
-    "createdAt": "2026-05-03T22:14:12.140Z"
-  },
-  {
-    "id": "1777846627483",
-    "creatorId": "demo-creator",
-    "brandId": "netflix",
-    "message": "Hey! I’d love to collaborate with your brand.",
-    "status": "pending",
-    "createdAt": "2026-05-03T22:17:07.483Z"
-  },
-  {
-    "id": "1777846847121",
-    "creatorId": "demo-creator",
-    "brandId": "netflix",
-    "message": "Hey! I’d love to collaborate with your brand.",
-    "status": "pending",
-    "createdAt": "2026-05-03T22:20:47.121Z"
-  },
-  {
-    "id": "1777846847939",
+    "id": "1777935397184-dtx8",
     "creatorId": "demo-creator",
     "brandId": "spotify",
     "message": "Hey! I’d love to collaborate with your brand.",
+    "campaignId": null,
     "status": "pending",
-    "createdAt": "2026-05-03T22:20:47.939Z"
+    "createdAt": "2026-05-04T22:56:37.184Z"
   },
   {
-    "id": "1777846856146",
+    "id": "1777935409656-j469",
     "creatorId": "demo-creator",
     "brandId": "nike",
     "message": "Hey! I’d love to collaborate with your brand.",
+    "campaignId": null,
     "status": "pending",
-    "createdAt": "2026-05-03T22:20:56.146Z"
-  },
-  {
-    "id": "1777846874156",
-    "creatorId": "demo-creator",
-    "brandId": "nike",
-    "message": "Hey! I’d love to collaborate with your brand.",
-    "status": "pending",
-    "createdAt": "2026-05-03T22:21:14.156Z"
-  },
-  {
-    "id": "1777847374373",
-    "creatorId": "unknown-creator",
-    "brandId": "netflix",
-    "message": "Hey! I’d love to collaborate with your brand.",
-    "status": "pending",
-    "createdAt": "2026-05-03T22:29:34.373Z"
+    "createdAt": "2026-05-04T22:56:49.656Z"
   }
 ]

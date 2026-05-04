@@ -30,17 +30,7 @@ type FeedItem =
     };
 
 /* -----------------------------
-   NORMALISE ID HELPER
-------------------------------*/
-function normalizeId(value: string) {
-  return value
-    .toLowerCase()
-    .replace(/\s+/g, "-")
-    .trim();
-}
-
-/* -----------------------------
-   FEED V2 ENGINE (FIXED)
+   FEED V2 ENGINE (FINAL STABLE VERSION)
 ------------------------------*/
 export function buildFeedV2(): FeedItem[] {
   const brands = getBrandOpportunities();
@@ -48,7 +38,9 @@ export function buildFeedV2(): FeedItem[] {
 
   const feed: FeedItem[] = [];
 
-  // 1. CREATOR NODES
+  /* -----------------------------
+     1. CREATOR NODES
+  ------------------------------*/
   for (const c of creators) {
     feed.push({
       type: "creator",
@@ -60,28 +52,37 @@ export function buildFeedV2(): FeedItem[] {
     });
   }
 
-  // 2. BRAND NODES (🔴 FIXED IDS HERE)
+  /* -----------------------------
+     2. BRAND NODES (SOURCE OF TRUTH FIX)
+     IMPORTANT: DO NOT TRANSFORM IDS
+  ------------------------------*/
   for (const b of brands) {
     feed.push({
       type: "brand",
-      id: normalizeId(b.name),   // 🔥 CRITICAL FIX
+      id: b.id, // 🔥 CRITICAL FIX: use raw stable ID only
       title: b.name,
       subtitle: b.desc,
       score: b.demand || 0,
     });
   }
 
-  // 3. MATCH NODES
+  /* -----------------------------
+     3. MATCH NODES
+  ------------------------------*/
   for (const m of matches) {
     feed.push({
       type: "match",
-      id: m.creator.slug + "-" + normalizeId(m.brand.name),
+      id: `${m.creator.slug}-${m.brand.id}`,
       title: `${m.creator.name} × ${m.brand.name}`,
       subtitle: m.reason,
       score: m.score + 20,
     });
   }
 
-  // 4. FINAL SORT
-  return feed.sort((a, b) => b.score - a.score).slice(0, 40);
+  /* -----------------------------
+     4. SORT + LIMIT
+  ------------------------------*/
+  return feed
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 40);
 }

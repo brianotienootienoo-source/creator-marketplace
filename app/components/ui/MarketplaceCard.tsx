@@ -1,56 +1,87 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 type Props = {
   title: string;
   subtitle?: string;
   image?: string;
-  badge?: string;
   footer?: string;
   actionLabel?: string;
 
-  // 🧠 NEW: real identity
   brandId?: string;
   creatorId?: string;
+
+  isAction?: boolean;
+  campaignId?: string;
+  href?: string;
 };
 
 export default function MarketplaceCard({
   title,
   subtitle,
   image,
-  badge,
   footer,
   actionLabel,
   brandId,
   creatorId,
+  isAction = false,
+  campaignId,
+  href,
 }: Props) {
+  const router = useRouter();
+
   const [loading, setLoading] = useState(false);
   const [applied, setApplied] = useState(false);
 
-  const handleAction = async () => {
-    try {
+  const handleClick = async () => {
+    // =====================
+    // APPLY MODE
+    // =====================
+    if (isAction) {
+      if (loading || applied) return;
+
+      // 🚨 HARD GUARD: prevent fake submissions
+      if (!creatorId) {
+        console.warn("Missing creatorId on apply action:", title);
+        return;
+      }
+
       setLoading(true);
 
-      const res = await fetch("/api/proposals", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          creatorId: creatorId || "unknown-creator",
-          brandId: brandId || title.toLowerCase(),
-          message: "Hey! I’d love to collaborate with your brand.",
-        }),
-      });
+      try {
+        await fetch("/api/proposals", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            creatorId, // 🔥 now strictly required
+            brandId: brandId || title.toLowerCase(),
+            message: "Hey! I’d love to collaborate with your brand.",
+          }),
+        });
 
-      await res.json();
-      setApplied(true);
-    } catch (err) {
-      console.error("API error:", err);
-    } finally {
-      setLoading(false);
+        setApplied(true);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+
+      return;
     }
+
+    // =====================
+    // VIEW MODE
+    // =====================
+    const target = campaignId ? `/campaigns/${campaignId}` : href;
+
+    if (!target) {
+      console.warn("No route defined for:", title);
+      return;
+    }
+
+    router.push(target);
   };
 
   return (
@@ -62,7 +93,6 @@ export default function MarketplaceCard({
         background: "#fff",
         border: "1px solid #eee",
         boxShadow: "0 2px 12px rgba(0,0,0,0.06)",
-        transition: "transform 0.2s ease, box-shadow 0.2s ease",
       }}
     >
       {image && (
@@ -89,20 +119,27 @@ export default function MarketplaceCard({
 
         {actionLabel && (
           <button
-            onClick={handleAction}
+            onClick={handleClick}
             disabled={loading || applied}
             style={{
               marginTop: 10,
               padding: "6px 10px",
               borderRadius: 8,
               border: "none",
+              width: "100%",
+
               background: applied ? "#16a34a" : "#000",
               color: "#fff",
-              width: "100%",
+
               cursor: "pointer",
+              opacity: loading ? 0.6 : 1,
             }}
           >
-            {loading ? "Applying..." : applied ? "Applied ✓" : actionLabel}
+            {loading
+              ? "Loading..."
+              : applied
+              ? "Applied ✓"
+              : actionLabel}
           </button>
         )}
       </div>
