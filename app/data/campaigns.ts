@@ -1,7 +1,7 @@
 export const campaigns = [
   {
     id: "campaign-1",
-    brandId: "Netflix",
+    brandId: "netflix",
     title: "Promote New Thriller Series",
     niche: "Film & TV creators",
     budget: "$300 - $800",
@@ -11,7 +11,7 @@ export const campaigns = [
   },
   {
     id: "campaign-2",
-    brandId: "Nike",
+    brandId: "nike",
     title: "Launch Performance Campaign",
     niche: "Fitness & lifestyle creators",
     budget: "$200 - $1000",
@@ -21,7 +21,7 @@ export const campaigns = [
   },
   {
     id: "campaign-3",
-    brandId: "Spotify",
+    brandId: "spotify",
     title: "New Artist Push Campaign",
     niche: "Music creators",
     budget: "$150 - $600",

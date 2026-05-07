@@ -1,3 +1,8 @@
+"use client";
+
+import AnimatedCard from "@/app/components/ui/AnimatedCard";
+import CardShell from "@/app/components/ui/CardShell";
+
 type Props = {
   title: string;
   niche: string;
@@ -10,26 +15,33 @@ export default function BrandCampaignCard({
   budget,
 }: Props) {
   return (
-    <div
-      style={{
-        padding: 14,
-        border: "1px solid #eee",
-        borderRadius: 12,
-        background: "#fff",
-        boxShadow: "0 1px 6px rgba(0,0,0,0.04)",
-      }}
-    >
-      <h3 style={{ fontSize: 15, fontWeight: 700, margin: 0 }}>
-        {title}
-      </h3>
+    <AnimatedCard>
+      <CardShell>
+        <h4>{title}</h4>
+        <p className="muted">{niche}</p>
+        <p className="strong">{budget}</p>
+      </CardShell>
 
-      <p style={{ fontSize: 12, color: "#666", marginTop: 6 }}>
-        {niche}
-      </p>
+      {/* 🎨 TYPOGRAPHY SYSTEM */}
+      <style jsx>{`
+        h4 {
+          font-size: 14px;
+          font-weight: 600;
+          margin: 0;
+        }
 
-      <p style={{ fontSize: 12, marginTop: 10, fontWeight: 600 }}>
-        💰 {budget}
-      </p>
-    </div>
+        .muted {
+          font-size: 12px;
+          color: #6b7280;
+          margin-top: 4px;
+        }
+
+        .strong {
+          font-size: 13px;
+          font-weight: 600;
+          margin-top: 8px;
+        }
+      `}</style>
+    </AnimatedCard>
   );
 }

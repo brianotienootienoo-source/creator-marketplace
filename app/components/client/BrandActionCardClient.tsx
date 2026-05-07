@@ -1,45 +1,64 @@
 "use client";
 
-import MarketplaceCard from "@/app/components/ui/MarketplaceCard";
+import { useState } from "react";
+import BrandInsights from "@/app/components/ui/BrandInsights";
+import AnimatedCard from "@/app/components/ui/AnimatedCard";
 
 type Props = {
-  brand: any;
-  creatorId?: string;
+  brandId: string;
 };
 
-export default function BrandActionCardClient({
-  brand,
-  creatorId = "demo-creator",
-}: Props) {
+export default function BrandActionCardClient({ brandId }: Props) {
+  const [showStats, setShowStats] = useState(false);
+
   return (
-    <MarketplaceCard
-      title={brand.title}
-      subtitle={brand.subtitle}
-      footer="Live Brand Deal"
-      badge="Brand"
-      actionLabel="Apply"
+    <AnimatedCard>
+      <div
+        style={{
+          marginTop: 16,
+          padding: 12,
+          border: "1px solid #eee",
+          borderRadius: 10,
+          background: "#fff",
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
+            gap: 10,
+            alignItems: "center",
+          }}
+        >
+          <button
+            onClick={() => setShowStats(!showStats)}
+            style={{
+              height: 44,
+              minWidth: 140,
+              padding: "0 14px",
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              background: "#1f2937",
+              color: "#fff",
+              borderRadius: 10,
+              border: "none",
+              cursor: "pointer",
+              fontWeight: 600,
+              fontSize: 14,
+              lineHeight: 1,
+              boxSizing: "border-box",
+            }}
+          >
+            {showStats ? "Hide Key Stats" : "View Key Stats"}
+          </button>
+        </div>
 
-      onAction={async () => {
-        try {
-          const res = await fetch("/api/proposals", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              creatorId,
-              brandId: brand.id,
-              message: "Hey! I’d love to collaborate with your brand.",
-            }),
-          });
-
-          const data = await res.json();
-
-          console.log("Proposal created:", data);
-        } catch (err) {
-          console.error("Failed to create proposal:", err);
-        }
-      }}
-    />
+        {showStats && (
+          <div style={{ marginTop: 12 }}>
+            <BrandInsights brandId={brandId} />
+          </div>
+        )}
+      </div>
+    </AnimatedCard>
   );
 }

@@ -1,34 +1,50 @@
+// app/lib/applicationsStore.ts
+
+import { normalizeBrandId } from "./brandUtils";
+
 export type Application = {
   id: string;
   brandId: string;
   creatorId: string;
-  message: string;
-  status: "pending" | "accepted" | "rejected";
-  createdAt: number;
+  status: "pending" | "approved" | "rejected";
 };
 
-const store: Application[] = [];
-
-/**
- * Add a new application
- */
-export function addApplication(app: Omit<Application, "id" | "status" | "createdAt">) {
-  const newApp: Application = {
-    id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+// 🧠 MOCK APPLICATION DATA (foundation layer)
+export const applications: Application[] = [
+  {
+    id: "app-1",
+    brandId: "netflix",
+    creatorId: "creator-1",
     status: "pending",
-    createdAt: Date.now(),
-    ...app,
-  };
+  },
+  {
+    id: "app-2",
+    brandId: "nike",
+    creatorId: "creator-2",
+    status: "approved",
+  },
+  {
+    id: "app-3",
+    brandId: "spotify",
+    creatorId: "creator-3",
+    status: "pending",
+  },
+];
 
-  store.push(newApp);
-  return newApp;
+// 🧠 GET APPLICATIONS FOR A BRAND
+export function getApplicationsByBrand(brandId: string) {
+  const id = normalizeBrandId(brandId);
+  return applications.filter((a) => a.brandId === id);
 }
 
-/**
- * Get applications for a brand
- */
-export function getApplicationsByBrand(brandId: string) {
-  return store
-    .filter((a) => a.brandId === brandId)
-    .sort((a, b) => b.createdAt - a.createdAt);
+// 🧠 GET APPLICATION STATS FOR A BRAND
+export function getBrandApplicationStats(brandId: string) {
+  const apps = getApplicationsByBrand(brandId);
+
+  return {
+    totalApplications: apps.length,
+    pending: apps.filter((a) => a.status === "pending").length,
+    approved: apps.filter((a) => a.status === "approved").length,
+    rejected: apps.filter((a) => a.status === "rejected").length,
+  };
 }
