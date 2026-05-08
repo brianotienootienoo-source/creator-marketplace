@@ -2,6 +2,7 @@
 
 import AnimatedCard from "@/app/components/ui/AnimatedCard";
 import CardShell from "@/app/components/ui/CardShell";
+import { spacing } from "@/app/lib/designTokens";
 
 type Props = {
   title: string;
@@ -17,31 +18,30 @@ export default function BrandCampaignCard({
   return (
     <AnimatedCard>
       <CardShell>
-        <h4>{title}</h4>
-        <p className="muted">{niche}</p>
-        <p className="strong">{budget}</p>
+        <h4 style={{ margin: 0, fontSize: 14, fontWeight: 600 }}>
+          {title}
+        </h4>
+
+        <p
+          style={{
+            fontSize: 12,
+            color: "#6b7280",
+            marginTop: spacing.xs,
+          }}
+        >
+          {niche}
+        </p>
+
+        <p
+          style={{
+            fontSize: 13,
+            fontWeight: 600,
+            marginTop: spacing.sm,
+          }}
+        >
+          {budget}
+        </p>
       </CardShell>
-
-      {/* 🎨 TYPOGRAPHY SYSTEM */}
-      <style jsx>{`
-        h4 {
-          font-size: 14px;
-          font-weight: 600;
-          margin: 0;
-        }
-
-        .muted {
-          font-size: 12px;
-          color: #6b7280;
-          margin-top: 4px;
-        }
-
-        .strong {
-          font-size: 13px;
-          font-weight: 600;
-          margin-top: 8px;
-        }
-      `}</style>
     </AnimatedCard>
   );
 }

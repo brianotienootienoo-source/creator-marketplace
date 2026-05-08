@@ -2,21 +2,18 @@ import { creators } from "@/app/data/creators";
 import { getBrandOpportunities } from "@/app/lib/feed";
 import { defaultUserProfile } from "./userProfile";
 
-/* -----------------------------
-   TYPES
-------------------------------*/
 type Match = {
   creator: any;
   brand: any;
   score: number;
-  rating: string; // UI ONLY
+  rating: string;
   reason: string;
   evidence: string[];
 };
 
-/* -----------------------------
-   CORE SCORE (UNCHANGED LOGIC)
-------------------------------*/
+/* =========================
+   PURE SCORING ENGINE
+========================= */
 function matchScore(creator: any, brand: any) {
   const profile = defaultUserProfile;
 
@@ -47,20 +44,9 @@ function matchScore(creator: any, brand: any) {
   return Math.round(score);
 }
 
-/* -----------------------------
-   SCORE → STAR RATING (ONLY UI OUTPUT)
-------------------------------*/
-function scoreToStars(score: number) {
-  if (score >= 85) return "★★★★★";
-  if (score >= 70) return "★★★★☆";
-  if (score >= 55) return "★★★☆☆";
-  if (score >= 40) return "★★☆☆☆";
-  return "★☆☆☆☆";
-}
-
-/* -----------------------------
-   EXPLANATION
-------------------------------*/
+/* =========================
+   INTERNAL EXPLANATION (NO UI LOGIC)
+========================= */
 function explainMatch(creator: any, brand: any) {
   const evidence: string[] = [];
 
@@ -93,9 +79,9 @@ function explainMatch(creator: any, brand: any) {
   };
 }
 
-/* -----------------------------
-   BUILD MATCHES
-------------------------------*/
+/* =========================
+   MATCH BUILDER (PURE OUTPUT)
+========================= */
 export function buildMatches(brandId?: string): Match[] {
   const brands = getBrandOpportunities();
   const creatorsList = creators;
@@ -117,7 +103,7 @@ export function buildMatches(brandId?: string): Match[] {
           creator: c,
           brand: b,
           score,
-          rating: scoreToStars(score), // ONLY UI USE
+          rating: "", // UI removed responsibility
           reason: explanation.summary,
           evidence: explanation.evidence,
         });

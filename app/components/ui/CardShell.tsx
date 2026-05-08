@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { radius, spacing } from "@/app/lib/designTokens";
 
 type Props = {
   children: React.ReactNode;
@@ -21,20 +22,13 @@ export default function CardShell({
     <div
       className={className}
       style={{
-        padding: 16,
+        padding: spacing.md,
         border: "1px solid #e5e7eb",
-        borderRadius: 14,
+        borderRadius: radius.md,
         background: "#fff",
-        boxShadow: "0 1px 2px rgba(0,0,0,0.04)",
-        transition: "transform 0.2s ease, box-shadow 0.2s ease",
-
-        ...(hover && { cursor: "pointer" }),
-
-        ...(lift && hover && {
-          transform: "translateY(-2px)",
-          boxShadow: "0 8px 20px rgba(0,0,0,0.08)",
-        }),
-
+        boxShadow: "0 2px 10px rgba(0,0,0,0.05)",
+        transition: "transform 0.18s ease, box-shadow 0.18s ease",
+        cursor: hover ? "pointer" : "default",
         ...style,
       }}
     >

@@ -16,5 +16,14 @@
     "campaignId": null,
     "status": "pending",
     "createdAt": "2026-05-04T22:56:49.656Z"
+  },
+  {
+    "id": "1778201679120-4grr",
+    "creatorId": "demo-creator",
+    "brandId": "netflix",
+    "message": "Hey! I’d love to collaborate.",
+    "campaignId": null,
+    "status": "pending",
+    "createdAt": "2026-05-08T00:54:39.121Z"
   }
 ]

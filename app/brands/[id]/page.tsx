@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { getBrandById } from "@/app/lib/brandUtils";
 import { campaigns } from "@/app/data/campaigns";
@@ -7,9 +8,20 @@ import BrandCampaignCard from "@/app/components/ui/BrandCampaignCard";
 import BrandActionCardClient from "@/app/components/client/BrandActionCardClient";
 import AnimatedCard from "@/app/components/ui/AnimatedCard";
 import CardShell from "@/app/components/ui/CardShell";
-import { buildMatches } from "@/app/lib/matchEngine";
-import { getCreatorMetrics } from "@/app/lib/creatorMetrics";
+import Button from "@/app/components/ui/Button";
+import { layout, spacing, radius } from "@/app/lib/designTokens";
 
+/* -----------------------------
+   SAFE KEY
+------------------------------*/
+function safeKey(id: unknown, index: number) {
+  if (typeof id !== "string" || !id) return `fallback-${index}`;
+  return `${id}-${index}`;
+}
+
+/* -----------------------------
+   TEXT FORMATTER
+------------------------------*/
 function titleCase(value: string) {
   return value
     .toLowerCase()
@@ -18,50 +30,88 @@ function titleCase(value: string) {
     .join(" ");
 }
 
-function getEngagementFromIndex(index: number) {
-  const demoScores = [35, 55, 72, 92];
-  return demoScores[index] ?? 50;
-}
+/* -----------------------------
+   ⭐ SAFE STAR SYSTEM (FINAL FIX)
+   - prevents undefined / NaN → 0 issues
+   - guarantees no empty stars
+   - stable scaling across all creators
+------------------------------*/
+function getStarsFromScore(score: any) {
+  const s = Number(score);
 
-function getEngagementColor(score: number) {
-  if (score >= 80) return "#3b82f6";
-  if (score >= 65) return "#22c55e";
-  if (score >= 45) return "#d4aa00";
-  return "#8B5A2B";
-}
+  // HARD SAFETY: never allow invalid values
+  const safe = Number.isFinite(s) ? s : 0;
 
-function renderStars(score: number, color: string) {
-  const full = Math.round(score / 20);
+  const normalized = Math.max(0, Math.min(100, safe));
+
+  const raw = (normalized / 100) * 5;
+
+  const full = Math.floor(raw);
+  const hasHalf = raw - full >= 0.5;
+
+  const color =
+    normalized >= 80 ? "#3b82f6" : // Blue (Viral)
+    normalized >= 60 ? "#16a34a" : // Green (High)
+    normalized >= 30 ? "#f59e0b" : // Yellow (Medium)
+    "#7c4a1e";                     // Dark Brown (Low)
 
   return (
-    <span style={{ letterSpacing: 1 }}>
-      {"★★★★★".split("").map((_, i) => (
-        <span key={i} style={{ color: i < full ? color : "#ddd" }}>
-          ★
-        </span>
-      ))}
+    <span style={{ display: "inline-flex", gap: 2 }}>
+      {Array.from({ length: 5 }).map((_, i) => {
+        let opacity = 0.25;
+
+        if (i < full) opacity = 1;
+        else if (i === full && hasHalf) opacity = 0.6;
+
+        return (
+          <span
+            key={i}
+            style={{
+              fontSize: 14,
+              color,
+              opacity,
+              transition: "all 0.2s ease",
+            }}
+          >
+            ★
+          </span>
+        );
+      })}
     </span>
   );
 }
 
-/* ================= UNIFIED SPACING CONTRACT ================= */
-const SPACING = {
-  sectionGap: 24,
-  cardGap: 16,
-  buttonHeight: 44,
-  buttonMinWidth: 140,
-  radius: 14,
-};
-
+/* -----------------------------
+   MAIN PAGE
+------------------------------*/
 export default function BrandPage() {
   const params = useParams();
   const rawId = (params?.id as string | undefined)?.toLowerCase() || "";
 
   const brand = getBrandById(rawId);
+  const [topCreators, setTopCreators] = useState<any[]>([]);
 
-  if (!rawId || !brand) {
+  useEffect(() => {
+    async function loadFeed() {
+      if (!rawId) return;
+
+      try {
+        const res = await fetch(`/api/feed?brandId=${rawId}&limit=10`);
+        const json = await res.json();
+
+        setTopCreators(json?.data || []);
+      } catch (err) {
+        console.error("Feed load failed:", err);
+        setTopCreators([]);
+      }
+    }
+
+    loadFeed();
+  }, [rawId]);
+
+  if (!brand) {
     return (
-      <main style={{ padding: 32, fontFamily: "sans-serif" }}>
+      <main style={{ padding: layout.pagePadding }}>
         <h1>Brand not found</h1>
       </main>
     );
@@ -71,156 +121,104 @@ export default function BrandPage() {
     (c) => c.brandId?.toLowerCase() === brand.id
   );
 
-  const brandName = titleCase(brand.name);
-  const topCreators = buildMatches(rawId)?.slice(0, 4) || [];
-
   return (
-    <main style={{ padding: 32, fontFamily: "sans-serif" }}>
+    <main style={{ padding: layout.pagePadding }}>
 
-      {/* ================= BRAND HERO ================= */}
+      {/* HERO */}
       <AnimatedCard>
-        <section
-          style={{
-            width: "100%",
-            display: "flex",
-            justifyContent: "space-between",
-            padding: 20,
-            border: "1px solid #eee",
-            borderRadius: SPACING.radius,
-            background: "#fff",
-            marginBottom: SPACING.cardGap,
-            gap: 24,
-          }}
-        >
-          <div style={{ flex: 1, minWidth: 0 }}>
+        <section style={{
+          display: "flex",
+          justifyContent: "space-between",
+          padding: spacing.lg,
+          borderRadius: radius.md,
+          background: "#fff",
+          marginBottom: layout.cardGap,
+          gap: spacing.lg,
+          boxShadow: "0 2px 10px rgba(0,0,0,0.05)",
+        }}>
+          <div style={{ flex: 1 }}>
             <h1 style={{ fontSize: 34, fontWeight: 800, margin: 0 }}>
-              {brandName}
+              {titleCase(brand.name)}
             </h1>
 
-            <p style={{ color: "#555", marginTop: 6 }}>
+            <p style={{ marginTop: spacing.sm, color: "#555" }}>
               {titleCase(brand.desc)}
             </p>
 
-            <div style={{ display: "flex", gap: 24, marginTop: 14 }}>
-              <div>
-                <p style={{ fontSize: 12, color: "#999" }}>ID</p>
-                <p style={{ fontWeight: 600 }}>{brand.id}</p>
-              </div>
-
-              <div>
-                <p style={{ fontSize: 12, color: "#999" }}>Demand</p>
-                <p style={{ fontWeight: 600 }}>{brand.demand}</p>
-              </div>
-            </div>
-
-            <button
-              style={{
-                marginTop: 16,
-                height: SPACING.buttonHeight,
-                minWidth: SPACING.buttonMinWidth,
-                padding: "0 14px",
-                borderRadius: 10,
-                border: "none",
-                background: "#000",
-                color: "#fff",
-                fontWeight: 600,
-                fontSize: 14,
-                lineHeight: 1,
-                display: "inline-flex",
-                alignItems: "center",
-                justifyContent: "center",
-                boxSizing: "border-box",
-              }}
-            >
+            <Button style={{ marginTop: spacing.lg }}>
               Apply to Brand
-            </button>
+            </Button>
           </div>
 
-          <div style={{ width: 160, textAlign: "right" }}>
-            <p style={{ fontSize: 12, color: "#999" }}>Status</p>
+          <div style={{
+            width: 180,
+            textAlign: "right",
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "space-between"
+          }}>
+            <div>
+              <p style={{ fontSize: 12, color: "#999", margin: 0 }}>
+                Status
+              </p>
 
-            <span
-              style={{
+              <span style={{
                 display: "inline-block",
-                marginTop: 4,
+                marginTop: spacing.sm,
                 padding: "4px 10px",
-                borderRadius: 999,
+                borderRadius: radius.full,
                 background: "#e7f9ee",
                 color: "#16a34a",
                 fontSize: 12,
                 fontWeight: 700,
-              }}
-            >
-              ● Active
-            </span>
+              }}>
+                ● Active
+              </span>
+            </div>
 
-            <div style={{ marginTop: 14 }}>
-              <p style={{ fontSize: 12, color: "#999" }}>Budget</p>
-              <p style={{ fontWeight: 700 }}>
-                ${brand.demand * 10}+
+            <div style={{ marginTop: spacing.lg }}>
+              <p style={{ fontSize: 13, color: "#666", margin: 0 }}>
+                Budget
+              </p>
+
+              <p style={{ fontSize: 13, fontWeight: 600, margin: 0 }}>
+                ${(brand.demand ?? 1) * 10}+
               </p>
             </div>
           </div>
         </section>
       </AnimatedCard>
 
-      {/* ================= KEY STATS ================= */}
-      <div style={{ marginTop: SPACING.cardGap }}>
+      {/* STATS */}
+      <div style={{ marginTop: layout.cardGap }}>
         <BrandActionCardClient brandId={rawId} />
       </div>
 
-      {/* ================= CREATOR MATCHES ================= */}
-      <section style={{ marginTop: SPACING.sectionGap }}>
-        <h2 style={{ fontSize: 20, fontWeight: 700 }}>
-          Top Creator Matches
-        </h2>
+      {/* CREATORS */}
+      <section style={{ marginTop: layout.sectionGap }}>
+        <h2>Top Creator Matches</h2>
 
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns:
-              "repeat(auto-fill, minmax(220px, 1fr))",
-            gap: SPACING.cardGap,
-            marginTop: SPACING.cardGap,
-          }}
-        >
+        <div style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))",
+          gap: layout.cardGap,
+          marginTop: layout.cardGap,
+        }}>
           {topCreators.map((item, index) => {
-            const metrics = getCreatorMetrics(item.creator.id);
-            const score = getEngagementFromIndex(index);
-            const color = getEngagementColor(score);
+            const creator = item?.creator;
+            if (!creator) return null;
 
             return (
-              <AnimatedCard key={`${item.creator.id}-${index}`}>
+              <AnimatedCard key={safeKey(creator.id, index)}>
                 <CardShell>
-                  <h4 style={{ margin: 0 }}>{item.creator.name}</h4>
+                  <h4 style={{ margin: 0 }}>{creator.name}</h4>
 
                   <p style={{ fontSize: 12, color: "#666" }}>
-                    {item.creator.category}
+                    {creator.category}
                   </p>
 
-                  <p style={{ marginTop: 6, fontWeight: 700 }}>
-                    Rating:&nbsp;
-                    {renderStars(score, color)}
-                  </p>
-
-                  <p style={{ fontSize: 12, color: "#666" }}>
-                    {score >= 80
-                      ? "Viral Engagement"
-                      : score >= 65
-                      ? "High Engagement"
-                      : score >= 45
-                      ? "Moderate Engagement"
-                      : "Low Engagement"}
-                  </p>
-
-                  <p style={{ fontSize: 11, color: "#777" }}>
-                    {score >= 80
-                      ? "Viral responsiveness to branded content"
-                      : score >= 65
-                      ? "Strong engagement with consistent interaction"
-                      : score >= 45
-                      ? "Moderate engagement with occasional interaction"
-                      : "Low engagement with limited brand response"}
+                  <p style={{ marginTop: spacing.sm }}>
+                    {getStarsFromScore(item?.score)}
                   </p>
                 </CardShell>
               </AnimatedCard>
@@ -229,21 +227,16 @@ export default function BrandPage() {
         </div>
       </section>
 
-      {/* ================= CAMPAIGNS ================= */}
-      <section style={{ marginTop: SPACING.sectionGap }}>
-        <h2 style={{ fontSize: 20, fontWeight: 700 }}>
-          Active Promotions
-        </h2>
+      {/* CAMPAIGNS */}
+      <section style={{ marginTop: layout.sectionGap }}>
+        <h2>Active Promotions</h2>
 
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns:
-              "repeat(auto-fill, minmax(220px, 1fr))",
-            gap: SPACING.cardGap,
-            marginTop: SPACING.cardGap,
-          }}
-        >
+        <div style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))",
+          gap: layout.cardGap,
+          marginTop: layout.cardGap,
+        }}>
           {brandCampaigns.map((c) => (
             <BrandCampaignCard
               key={c.id}
@@ -254,6 +247,7 @@ export default function BrandPage() {
           ))}
         </div>
       </section>
+
     </main>
   );
 }

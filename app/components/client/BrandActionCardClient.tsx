@@ -2,63 +2,33 @@
 
 import { useState } from "react";
 import BrandInsights from "@/app/components/ui/BrandInsights";
+import CardShell from "@/app/components/ui/CardShell";
 import AnimatedCard from "@/app/components/ui/AnimatedCard";
+import Button from "@/app/components/ui/Button";
+import { spacing } from "@/app/lib/designTokens";
 
-type Props = {
+export default function BrandActionCardClient({
+  brandId,
+}: {
   brandId: string;
-};
-
-export default function BrandActionCardClient({ brandId }: Props) {
+}) {
   const [showStats, setShowStats] = useState(false);
 
   return (
     <AnimatedCard>
-      <div
-        style={{
-          marginTop: 16,
-          padding: 12,
-          border: "1px solid #eee",
-          borderRadius: 10,
-          background: "#fff",
-        }}
-      >
-        <div
-          style={{
-            display: "flex",
-            gap: 10,
-            alignItems: "center",
-          }}
-        >
-          <button
-            onClick={() => setShowStats(!showStats)}
-            style={{
-              height: 44,
-              minWidth: 140,
-              padding: "0 14px",
-              display: "inline-flex",
-              alignItems: "center",
-              justifyContent: "center",
-              background: "#1f2937",
-              color: "#fff",
-              borderRadius: 10,
-              border: "none",
-              cursor: "pointer",
-              fontWeight: 600,
-              fontSize: 14,
-              lineHeight: 1,
-              boxSizing: "border-box",
-            }}
-          >
+      <CardShell>
+        <div style={{ marginTop: spacing.sm }}>
+          <Button onClick={() => setShowStats((s) => !s)}>
             {showStats ? "Hide Key Stats" : "View Key Stats"}
-          </button>
+          </Button>
         </div>
 
         {showStats && (
-          <div style={{ marginTop: 12 }}>
+          <div style={{ marginTop: spacing.md }}>
             <BrandInsights brandId={brandId} />
           </div>
         )}
-      </div>
+      </CardShell>
     </AnimatedCard>
   );
 }

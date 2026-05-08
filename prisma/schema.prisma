@@ -1,0 +1,20 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+/* -----------------------------
+   ENGAGEMENT EVENTS
+------------------------------*/
+model Engagement {
+  id         String   @id @default(cuid())
+  brandId    String
+  creatorId  String
+  action     String
+  weight     Int
+  createdAt  DateTime @default(now())
+}
