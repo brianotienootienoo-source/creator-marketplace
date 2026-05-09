@@ -15,11 +15,32 @@ export function getCreatorScore(creator: Creator) {
   const engagement = creator.engagementRate ?? 0.05;
   const brandHistory = creator.pastBrandScore ?? 50;
 
-  const followerScore = Math.log10(followers + 10) * 20;
-  const engagementScore = engagement * 120;
-  const historyScore = (brandHistory / 100) * 40;
+  // FOLLOWER SCORE (0 → 40)
+  const followerScore = Math.min(
+    40,
+    Math.log10(followers + 10) * 6
+  );
 
-  return Math.round(followerScore + engagementScore + historyScore);
+  // ENGAGEMENT SCORE (0 → 40)
+  const engagementScore = Math.min(
+    40,
+    engagement * 400
+  );
+
+  // BRAND HISTORY SCORE (0 → 20)
+  const historyScore = Math.min(
+    20,
+    (brandHistory / 100) * 20
+  );
+
+  const finalScore =
+    followerScore +
+    engagementScore +
+    historyScore;
+
+  return Math.round(
+    Math.max(0, Math.min(100, finalScore))
+  );
 }
 
 /* =========================

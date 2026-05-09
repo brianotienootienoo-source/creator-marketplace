@@ -22,13 +22,17 @@ export default function CardShell({
     <div
       className={className}
       style={{
-        padding: spacing.md,
+        padding: spacing?.md ?? 12, // ✅ SAFE FALLBACK (prevents crash)
         border: "1px solid #e5e7eb",
-        borderRadius: radius.md,
+        borderRadius: radius?.md ?? 12,
         background: "#fff",
         boxShadow: "0 2px 10px rgba(0,0,0,0.05)",
+
         transition: "transform 0.18s ease, box-shadow 0.18s ease",
         cursor: hover ? "pointer" : "default",
+
+        overflow: "hidden",
+
         ...style,
       }}
     >

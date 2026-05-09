@@ -66,26 +66,69 @@ export default function MarketplaceCard({
   };
 
   return (
-    <CardShell style={{ minWidth: 180, overflow: "hidden" }}>
+    <CardShell
+      style={{
+        minWidth: 180,
+
+        // 🔥 IMPORTANT FIX: prevents clipping inside horizontal scroll + grids
+        height: "100%",
+        display: "flex",
+        flexDirection: "column",
+
+        justifyContent: "space-between",
+        overflow: "hidden",
+      }}
+    >
+      {/* IMAGE */}
       {image && (
-        <img
-          src={image}
-          style={{ width: "100%", height: 110, objectFit: "cover" }}
-        />
+        <div
+          style={{
+            width: "100%",
+            height: 100,
+            overflow: "hidden",
+            borderRadius: 8,
+            marginBottom: spacing.sm,
+            flexShrink: 0,
+          }}
+        >
+          <img
+            src={image}
+            style={{
+              width: "100%",
+              height: "100%",
+              objectFit: "cover",
+            }}
+          />
+        </div>
       )}
 
-      <div style={{ paddingTop: spacing.sm }}>
+      {/* CONTENT */}
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          gap: 4,
+          flex: 1,
+        }}
+      >
         <p style={{ fontWeight: 600, margin: 0 }}>{title}</p>
 
         {subtitle && (
-          <p style={{ fontSize: 12, color: "#666" }}>{subtitle}</p>
+          <p style={{ fontSize: 12, color: "#666", margin: 0 }}>
+            {subtitle}
+          </p>
         )}
 
         {footer && (
-          <p style={{ fontSize: 12, color: "#999" }}>{footer}</p>
+          <p style={{ fontSize: 12, color: "#999", margin: 0 }}>
+            {footer}
+          </p>
         )}
+      </div>
 
-        {actionLabel && (
+      {/* BUTTON */}
+      {actionLabel && (
+        <div style={{ marginTop: spacing.sm }}>
           <Button
             onClick={handleClick}
             disabled={loading || applied}
@@ -93,8 +136,8 @@ export default function MarketplaceCard({
           >
             {loading ? "Loading..." : applied ? "Applied ✓" : actionLabel}
           </Button>
-        )}
-      </div>
+        </div>
+      )}
     </CardShell>
   );
 }

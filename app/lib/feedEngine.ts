@@ -9,7 +9,7 @@ export function getFeed(brandId?: string) {
 
   return creators
     .map((creator) => {
-      let score = getCreatorScore({
+      const baseScore = getCreatorScore({
         id: creator.id,
         name: creator.name,
         category: creator.category,
@@ -17,20 +17,35 @@ export function getFeed(brandId?: string) {
         engagementRate: creator.engagementRate,
       });
 
+      let score = baseScore;
+
       if (targetBrand) {
         const creatorCategory = creator.category?.toLowerCase();
         const brandNiche = targetBrand.niche?.toLowerCase();
 
-        if (creatorCategory && brandNiche && creatorCategory === brandNiche) {
+        if (
+          creatorCategory &&
+          brandNiche &&
+          creatorCategory === brandNiche
+        ) {
           score += 15;
         }
 
-        score += getEngagementBoost(targetBrand.id, creator.id);
+        const engagementBoost = getEngagementBoost(
+          targetBrand.id,
+          creator.id
+        );
+
+        score += engagementBoost;
       }
 
       return {
-        creator,
-        score,
+        id: creator.id,
+        name: creator.name,
+        category: creator.category,
+        avatar: creator.avatar,
+        followers: creator.followers,
+        score: Math.round(score),
         reason: "stable feed",
       };
     })
