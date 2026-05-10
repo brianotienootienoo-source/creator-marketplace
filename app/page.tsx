@@ -7,9 +7,15 @@ import { campaigns } from "@/app/data/campaigns";
 import { buildFeedV2 } from "@/app/lib/feedV2";
 import ViewAllButton from "@/app/components/ui/ViewAllButton";
 
+/* -----------------------------
+   STREAM SYSTEM
+------------------------------*/
 import { routeFeedStreams } from "@/app/lib/streams/streamRouter";
 import { getActiveStreamMode } from "@/app/lib/streams/streamSwitchEngine";
 
+/* -----------------------------
+   TYPES
+------------------------------*/
 type FeedItem = {
   type?: "creator" | "brand" | "match";
   id?: string;
@@ -22,36 +28,60 @@ type FeedItem = {
 
 export default function Home() {
   const [feed, setFeed] = useState<FeedItem[]>([]);
-  const [mode, setMode] = useState<"forYou" | "explore" | "mixed">("forYou");
   const [hydrated, setHydrated] = useState(false);
 
+  /* -----------------------------
+     FEED LOAD (CLIENT ONLY, SAFE)
+  ------------------------------*/
   useEffect(() => {
-    setHydrated(true);
-
     try {
       const raw = buildFeedV2();
-      setFeed(Array.isArray(raw) ? raw : []);
+
+      if (!Array.isArray(raw)) {
+        setFeed([]);
+        return;
+      }
+
+      setFeed(raw);
     } catch {
       setFeed([]);
     }
   }, []);
 
+  /* -----------------------------
+     HYDRATION FLAG
+  ------------------------------*/
+  useEffect(() => {
+    setHydrated(true);
+  }, []);
+
+  /* -----------------------------
+     STREAMS (SAFE + STABLE)
+  ------------------------------*/
   const streams = useMemo(() => {
-    if (!feed.length) return { forYou: [], explore: [] };
     return routeFeedStreams(feed);
   }, [feed]);
 
-  useEffect(() => {
-    setMode(getActiveStreamMode());
-  }, []);
+  /* -----------------------------
+     STABLE MODE (NO HYDRATION FLIP)
+  ------------------------------*/
+  const mode = useMemo(() => {
+    // IMPORTANT: ONLY compute AFTER hydration
+    if (!hydrated) return "forYou";
+    return getActiveStreamMode();
+  }, [hydrated]);
 
-  const activeFeed = streams?.forYou?.length ? streams.forYou : feed;
+  /* -----------------------------
+     SAFE FALLBACK FEED
+  ------------------------------*/
+  const activeFeed = feed ?? [];
 
   const creators = activeFeed.filter((f) => f?.type === "creator");
   const brands = activeFeed.filter((f) => f?.type === "brand");
 
   return (
     <main style={{ padding: 40, fontFamily: "sans-serif" }}>
+
       {/* HERO */}
       <section style={{ marginBottom: 40 }}>
         <h1 style={{ fontSize: 32, fontWeight: 700 }}>
@@ -63,7 +93,7 @@ export default function Home() {
         </p>
 
         <p style={{ fontSize: 12, color: "#999", marginTop: 6 }}>
-          Stream mode: {hydrated ? mode : "loading..."}
+          Stream mode: {mode}
         </p>
       </section>
 
@@ -71,22 +101,22 @@ export default function Home() {
       <section style={{ marginBottom: 40 }}>
         <h2>Brand Signals</h2>
 
-        <div style={{ display: "flex", gap: 12, overflowX: "auto" }}>
-          {brands.length ? (
+        <div style={{ display: "flex", gap: 12, overflowX: "auto", marginTop: 10 }}>
+          {brands.length === 0 ? (
+            <p style={{ color: "#999" }}>No brand signals available</p>
+          ) : (
             brands.slice(0, 6).map((b) => (
               <div key={b.id ?? "brand"} style={{ minWidth: 180 }}>
                 <MarketplaceCard
                   title={b?.name ?? "Brand"}
                   subtitle={b?.subtitle ?? ""}
-                  footer="Active demand"
+                  footer="Active brand demand"
                   actionLabel="View"
                   isAction={false}
                   href={`/brands/${b?.id ?? "#"}`}
                 />
               </div>
             ))
-          ) : (
-            <p style={{ color: "#999" }}>No brand signals yet</p>
           )}
         </div>
       </section>
@@ -95,26 +125,19 @@ export default function Home() {
       <section style={{ marginBottom: 40 }}>
         <h2>Live Campaigns</h2>
 
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))",
-            gap: 12,
-            marginTop: 10,
-          }}
-        >
-          {campaigns.map((c) => (
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))", gap: 12 }}>
+          {campaigns.map((campaign) => (
             <MarketplaceCard
-              key={c.id}
-              title={c.title}
-              subtitle={c.niche}
-              footer={c.budget}
-              image={c.image}
+              key={campaign.id}
+              title={campaign.title}
+              subtitle={campaign.niche}
+              footer={`${campaign.budget}`}
+              image={campaign.image}
               actionLabel="Apply"
-              isAction
-              brandId={c.brandId}
-              creatorId="demo"
-              campaignId={c.id}
+              isAction={true}
+              brandId={campaign.brandId}
+              creatorId="demo-creator"
+              campaignId={campaign.id}
             />
           ))}
         </div>
@@ -124,14 +147,44 @@ export default function Home() {
         </div>
       </section>
 
+      {/* DISCOVER */}
+      <section style={{ marginBottom: 40 }}>
+        <h2>Discover</h2>
+
+        <div style={{ display: "flex", gap: 12 }}>
+          <MarketplaceCard
+            title="Trending Niches"
+            subtitle="Fashion, Music, Comedy"
+            isAction={false}
+            href="/discover/trending"
+          />
+
+          <MarketplaceCard
+            title="Platform Activity"
+            subtitle="Live engagement across creators & brands"
+            isAction={false}
+            href="/discover/activity"
+          />
+
+          <MarketplaceCard
+            title="Opportunities Heatmap"
+            subtitle="Where brand demand is rising"
+            isAction={false}
+            href="/discover/heatmap"
+          />
+        </div>
+      </section>
+
       {/* LIVE CREATORS */}
       <section style={{ marginTop: 40 }}>
         <h2>Live Creators</h2>
 
         <div style={{ display: "flex", gap: 14, overflowX: "auto" }}>
-          {creators.length ? (
+          {creators.length === 0 ? (
+            <p style={{ color: "#999" }}>No creators available</p>
+          ) : (
             creators.slice(0, 12).map((c) => (
-              <div key={c.id ?? c.name} style={{ minWidth: 200 }}>
+              <div key={`${c.id}-${c.name}`} style={{ minWidth: 200 }}>
                 <CreatorCard
                   creator={{
                     id: c.id,
@@ -143,11 +196,10 @@ export default function Home() {
                 />
               </div>
             ))
-          ) : (
-            <p style={{ color: "#999" }}>No creators yet</p>
           )}
         </div>
       </section>
+
     </main>
   );
 }

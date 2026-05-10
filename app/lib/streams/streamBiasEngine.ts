@@ -1,21 +1,45 @@
 import { getStreamState } from "./streamStateEngine";
 
-/* -----------------------------
-   LEGACY MODE SIGNAL (6.6 LOCK)
-   - kept only as fallback/debug layer
-------------------------------*/
+export type StreamBiasSignals = {
+  engagementBoost: number;
+  explorationBoost: number;
+};
 
-export function getDynamicStreamMode():
-  | "forYou"
-  | "explore"
-  | "mixed" {
+export function getStreamBiasSignals(): StreamBiasSignals {
   const state = getStreamState();
 
   const inactivity = Date.now() - state.lastInteractionTime;
 
-  if (state.clickIntensity > 0.75) return "forYou";
-  if (state.scrollDepth > 0.75) return "mixed";
-  if (inactivity > 1000 * 60 * 2) return "explore";
+  let engagementBoost = 0;
+  let explorationBoost = 0;
 
-  return "forYou";
+  // heavy engagement → favor forYou
+  if (state.clickIntensity > 0.7) {
+    engagementBoost += 0.3;
+  }
+
+  // deep scrolling → stable engagement
+  if (state.scrollDepth > 0.7) {
+    engagementBoost += 0.2;
+  }
+
+  // drift → curiosity / exploration
+  if (state.driftFactor > 0.6) {
+    explorationBoost += 0.4;
+  }
+
+  // inactivity → exploration push
+  if (inactivity > 1000 * 60 * 2) {
+    explorationBoost += 0.3;
+  }
+
+  // low engagement → exploration fallback
+  if (state.clickIntensity < 0.2) {
+    explorationBoost += 0.2;
+  }
+
+  return {
+    engagementBoost,
+    explorationBoost,
+  };
 }
