@@ -2,10 +2,43 @@ import { getCreatorUniverse } from "@/app/lib/creatorUniverse";
 import { getBrandOpportunities } from "@/app/lib/feed";
 import { buildMatches } from "@/app/lib/matchEngine";
 import { getTrendLabel } from "@/app/lib/trendLabel";
+
+import { getCooldownPenalty, markSeen } from "@/app/lib/feedExposureStore";
+
+import { applyFeedPersonality } from "@/app/lib/feedPersonality";
+import { getRouteFeedMode } from "@/app/lib/routeFeedBehavior";
+
+import { getCreatorAffinity } from "@/app/lib/creatorAffinity";
+import { getNicheAffinity } from "@/app/lib/nicheAffinity";
+import { getEngagementLevel } from "@/app/lib/sessionSignals";
+
+import { trackEngagement } from "@/app/lib/engagementTracker";
+import { startInteractionDecay } from "@/app/lib/interactionDecay";
+import { balanceRecommendations } from "@/app/lib/recommendationBalancer";
+
 import {
-  getCooldownPenalty,
-  markSeen,
-} from "@/app/lib/feedExposureStore";
+  getSessionPersona,
+  registerSessionInteraction,
+} from "@/app/lib/sessionPersonality";
+
+import { getMoodWeights } from "@/app/lib/feedMoodEngine";
+
+import {
+  updateCreatorMemory,
+  updateNicheMemory,
+} from "@/app/lib/crossSessionMemory";
+
+import {
+  getPersistentCreatorAffinity,
+} from "@/app/lib/tastePersistence";
+
+import {
+  getResurfacingBoost,
+} from "@/app/lib/resurfacingEngine";
+
+import { applyFeedStabilityBoost } from "@/app/lib/feedStability";
+
+import { runCommand } from "@/app/lib/engine/commandRuntime";
 
 /* -----------------------------
    TYPES
@@ -39,51 +72,41 @@ type MatchDTO = {
 
 type FeedItem = CreatorDTO | BrandDTO | MatchDTO;
 
-/* -----------------------------
-   INTERNAL CREATOR TYPE
-------------------------------*/
 type RankedCreator = CreatorDTO & {
   _rank: number;
 };
 
+interface FeedBuildOptions {
+  pathname?: string;
+  isBrandView?: boolean;
+  isCreatorView?: boolean;
+}
+
 /* -----------------------------
-   NORMALIZER
+   UTILS
 ------------------------------*/
 const clampScore = (n: number) =>
   Math.max(0, Math.min(100, Number(n) || 0));
 
-/* -----------------------------
-   HELPERS
-------------------------------*/
-
-/** deterministic jitter */
-function getJitter(id: string) {
-  let hash = 0;
-
-  for (let i = 0; i < id.length; i++) {
-    hash = (hash << 5) - hash + id.charCodeAt(i);
-    hash |= 0;
-  }
-
-  return (Math.abs(hash) % 5) - 2;
-}
-
-/** time drift */
-function getTimeDrift(index: number) {
-  const t = Date.now();
-
-  // 🔥 faster visible movement
-  return Math.sin((t / 15000) + index * 0.7) * 5;
-}
-
-/** momentum clamp */
 function clampMomentum(n: number) {
   return Math.max(-10, Math.min(10, Number(n) || 0));
 }
 
-/** refresh seed */
+function getJitter(id: string) {
+  let hash = 0;
+  for (let i = 0; i < id.length; i++) {
+    hash = (hash << 5) - hash + id.charCodeAt(i);
+    hash |= 0;
+  }
+  return (Math.abs(hash) % 5) - 2;
+}
+
+function getTimeDrift(index: number) {
+  const t = Date.now();
+  return Math.sin(t / 15000 + index * 0.7) * 5;
+}
+
 function getRefreshSeed() {
-  // 🔥 faster seed rotation for visible refresh changes
   return Math.floor(Date.now() / 5000);
 }
 
@@ -93,96 +116,129 @@ function seededRandom(seed: number, index: number) {
 }
 
 /* -----------------------------
-   FEED ENGINE (PHASE 3 COMPLETE)
+   SAFE COMMAND WRAPPER
 ------------------------------*/
-export function buildFeedV2(): FeedItem[] {
+function safeRunCommand(feed: FeedItem[], seed: number): FeedItem[] {
+  try {
+    const result = runCommand("FEED.BUILD", { feed });
+
+    if (Array.isArray(result)) return result;
+
+    return feed;
+  } catch {
+    return feed;
+  }
+}
+
+/* -----------------------------
+   FEED ENGINE
+------------------------------*/
+export function buildFeedV2(options: FeedBuildOptions = {}): FeedItem[] {
+  startInteractionDecay();
+
   const creators = getCreatorUniverse();
   const brands = getBrandOpportunities();
   const matches = buildMatches();
 
   const feed: FeedItem[] = [];
 
-  const isSmallDataset = creators.length <= 6;
   const seed = getRefreshSeed();
+  const isSmallDataset = creators.length <= 6;
+
+  const mode = getRouteFeedMode({
+    pathname: options.pathname,
+    isBrandView: options.isBrandView,
+    isCreatorView: options.isCreatorView,
+  });
+
+  const persona = getSessionPersona();
+  const moodWeights = getMoodWeights(persona.mood);
 
   /* -----------------------------
      CREATORS
   ------------------------------*/
-  const enrichedCreators: RankedCreator[] = creators.map(
-    (c, index) => {
-      const trend = getTrendLabel(
-        c.score,
-        c.momentum ?? 0
-      );
+  const enrichedCreators: RankedCreator[] = creators.map((c, index) => {
+    registerSessionInteraction();
 
-      const momentum = clampMomentum(
-        c.momentum ?? 0
-      );
+    const trend = getTrendLabel(c.score, c.momentum ?? 0);
+    const momentum = clampMomentum(c.momentum ?? 0);
 
-      const momentumBoost =
-        momentum * (isSmallDataset ? 1.2 : 0.5);
+    const momentumBoost = momentum * (isSmallDataset ? 1.2 : 0.5);
+    const jitter = getJitter(c.id);
+    const drift = getTimeDrift(index);
 
-      const jitter = getJitter(c.id);
+    const randomness = isSmallDataset
+      ? seededRandom(seed, index) * 14 - 7
+      : seededRandom(seed, index) * 4 - 2;
 
-      const drift = getTimeDrift(index);
+    const discoveryScore = seededRandom(seed + 77, index) * 10;
+    const stabilityScore = c.score > 75 ? 8 : 2;
+    const engagementScore = Math.max(0, momentum) * 1.4;
 
-      // 🔥 stronger visible movement for tiny datasets
-      const noise = isSmallDataset
-        ? seededRandom(seed, index) * 14 - 7
-        : seededRandom(seed, index) * 4 - 2;
+    const creatorAffinity = getCreatorAffinity(c.id);
+    const nicheAffinity = getNicheAffinity(c.category ?? "");
+    const engagementLevel = getEngagementLevel();
 
-      // 🔥 exposure cooldown
-      const cooldown = getCooldownPenalty(c.id);
+    const sessionBoost =
+      engagementLevel === "HIGH"
+        ? 8
+        : engagementLevel === "MEDIUM"
+        ? 4
+        : 1;
 
-      const rawScore =
-        c.score +
-        momentumBoost +
-        jitter +
-        drift +
-        noise -
-        cooldown * 4;
+    const cooldown = getCooldownPenalty(c.id);
 
-      return {
-        type: "creator",
-        id: c.id,
-        name: c.name,
-        category: c.category ?? "Creator",
-        avatar: c.avatar,
+    updateCreatorMemory(c.id, Math.abs(c.momentum ?? 0) * 0.5);
+    updateNicheMemory(c.category ?? "unknown", Math.abs(c.momentum ?? 0) * 0.3);
 
-        score: clampScore(rawScore),
+    const persistentAffinity = getPersistentCreatorAffinity(
+      c.id,
+      c.category ?? ""
+    );
 
-        _rank: rawScore,
+    const resurfacingBoost = getResurfacingBoost(c.id);
 
-        trend: trend.label,
-        trendColor: trend.color,
-      };
-    }
-  );
+    const rawScore = applyFeedPersonality(mode, {
+      baseScore: c.score,
 
-  /* -----------------------------
-     SORT CORE
-  ------------------------------*/
-  let sortedCreators = enrichedCreators.sort(
-    (a, b) => b._rank - a._rank
-  );
+      momentumScore: momentumBoost * moodWeights.momentum,
+      discoveryScore: discoveryScore * moodWeights.discovery,
+      stabilityScore: stabilityScore * moodWeights.stability,
 
-  /* -----------------------------
-     SMALL DATASET DISCOVERY LAYER
-  ------------------------------*/
+      randomnessScore:
+        (randomness + jitter + drift) * moodWeights.randomness,
+
+      exposurePenalty: cooldown,
+
+      engagementScore:
+        (engagementScore +
+          creatorAffinity * 1.8 +
+          nicheAffinity * 1.2 +
+          sessionBoost +
+          persistentAffinity * 0.9 +
+          resurfacingBoost * 1.4) *
+        moodWeights.engagement,
+    });
+
+    return {
+      type: "creator",
+      id: c.id,
+      name: c.name,
+      category: c.category ?? "Creator",
+      avatar: c.avatar,
+      score: clampScore(rawScore),
+      _rank: rawScore,
+      trend: trend.label,
+      trendColor: trend.color,
+    };
+  });
+
+  let sortedCreators = enrichedCreators.sort((a, b) => b._rank - a._rank);
+
   if (isSmallDataset) {
-    for (
-      let i = sortedCreators.length - 1;
-      i > 0;
-      i--
-    ) {
-      const shouldSwap =
-        seededRandom(seed, i) > 0.45;
-
-      if (shouldSwap) {
-        const j = Math.floor(
-          seededRandom(seed, i + 99) * (i + 1)
-        );
-
+    for (let i = sortedCreators.length - 1; i > 0; i--) {
+      if (seededRandom(seed, i) > 0.45) {
+        const j = Math.floor(seededRandom(seed, i + 99) * (i + 1));
         [sortedCreators[i], sortedCreators[j]] = [
           sortedCreators[j],
           sortedCreators[i],
@@ -194,10 +250,15 @@ export function buildFeedV2(): FeedItem[] {
   feed.push(...sortedCreators);
 
   /* -----------------------------
-     MARK AS SEEN
+     ENGAGEMENT TRACKING
   ------------------------------*/
   sortedCreators.forEach((c) => {
     markSeen(c.id);
+
+    trackEngagement("CREATOR_VIEW", {
+      creatorId: c.id,
+      intensity: 0.25,
+    });
   });
 
   /* -----------------------------
@@ -210,10 +271,7 @@ export function buildFeedV2(): FeedItem[] {
       name: b.name,
       subtitle: b.desc,
       score: clampScore(
-        Math.round(
-          b.demand * 10 +
-            seededRandom(seed, b.name.length) * 4
-        )
+        Math.round(b.demand * 10 + seededRandom(seed, b.name.length) * 4)
       ),
     });
   }
@@ -222,16 +280,22 @@ export function buildFeedV2(): FeedItem[] {
      MATCHES
   ------------------------------*/
   for (const m of matches) {
+    trackEngagement("MATCH_CLICK", { intensity: 0.7 });
+
     feed.push({
       type: "match",
       id: `${m.creator.slug}-${m.brand.id}`,
       name: `${m.creator.name} × ${m.brand.name}`,
       subtitle: m.reason,
-      score: clampScore(
-        Math.round(m.score + 10)
-      ),
+      score: clampScore(Math.round(m.score + 10)),
     });
   }
 
-  return feed.slice(0, 40);
+  /* -----------------------------
+     FINAL PIPELINE
+------------------------------*/
+  const balanced = balanceRecommendations(feed.slice(0, 40));
+  const stabilized = applyFeedStabilityBoost(balanced, seed);
+
+  return safeRunCommand(stabilized, seed);
 }

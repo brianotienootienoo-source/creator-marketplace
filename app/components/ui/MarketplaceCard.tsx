@@ -6,6 +6,9 @@ import CardShell from "@/app/components/ui/CardShell";
 import Button from "@/app/components/ui/Button";
 import { spacing } from "@/app/lib/designTokens";
 
+// 🧠 6.3 Match feedback system (correct export)
+import { recordMatchFeedback } from "@/app/lib/matches/matchFeedbackStore";
+
 type Props = {
   title: string;
   subtitle?: string;
@@ -36,6 +39,15 @@ export default function MarketplaceCard({
   const [applied, setApplied] = useState(false);
 
   const handleClick = async () => {
+    const pairId = `${creatorId ?? "unknown"}-${brandId ?? title.toLowerCase()}`;
+
+    // 🧠 6.3 FEEDBACK SIGNAL
+    recordMatchFeedback({
+      pairId,
+      type: isAction ? "apply" : "view",
+      intensity: isAction ? 0.8 : 0.3,
+    });
+
     if (isAction) {
       if (loading || applied) return;
       if (!creatorId) return;
@@ -69,12 +81,9 @@ export default function MarketplaceCard({
     <CardShell
       style={{
         minWidth: 180,
-
-        // 🔥 IMPORTANT FIX: prevents clipping inside horizontal scroll + grids
         height: "100%",
         display: "flex",
         flexDirection: "column",
-
         justifyContent: "space-between",
         overflow: "hidden",
       }}
