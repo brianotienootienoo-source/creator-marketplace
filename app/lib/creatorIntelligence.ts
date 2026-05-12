@@ -15,39 +15,22 @@ export function getCreatorScore(creator: Creator) {
   const engagement = creator.engagementRate ?? 0.05;
   const brandHistory = creator.pastBrandScore ?? 50;
 
-  // FOLLOWER SCORE (0 → 40)
-  const followerScore = Math.min(
-    40,
-    Math.log10(followers + 10) * 6
-  );
-
-  // ENGAGEMENT SCORE (0 → 40)
-  const engagementScore = Math.min(
-    40,
-    engagement * 400
-  );
-
-  // BRAND HISTORY SCORE (0 → 20)
-  const historyScore = Math.min(
-    20,
-    (brandHistory / 100) * 20
-  );
+  const followerScore = Math.min(40, Math.log10(followers + 10) * 6);
+  const engagementScore = Math.min(40, engagement * 400);
+  const historyScore = Math.min(20, (brandHistory / 100) * 20);
 
   const finalScore =
     followerScore +
     engagementScore +
     historyScore;
 
-  return Math.round(
-    Math.max(0, Math.min(100, finalScore))
-  );
+  return Math.round(Math.max(0, Math.min(100, finalScore)));
 }
 
 /* =========================
-   LABEL SYSTEM
+   LABEL SYSTEM (NO EMOJIS)
 ========================= */
 export function getCreatorLabel(score: number) {
-  if (score >= 120) return "Elite Creator";
   if (score >= 80) return "High Performer";
   if (score >= 50) return "Mid Tier";
   if (score >= 25) return "Emerging";
@@ -55,23 +38,19 @@ export function getCreatorLabel(score: number) {
 }
 
 /* =========================
-   GLOBAL COLOR (SINGLE SOURCE OF TRUTH)
+   COLOR SYSTEM
 ========================= */
 export function getCreatorColor(score: number) {
   return "#3b82f6";
 }
 
 /* =========================
-   ⭐ GLOBAL STAR SYSTEM (FIXED + CONSISTENT)
-   - prevents empty stars
-   - same logic everywhere (brand page, homepage, live feed)
+   STAR SYSTEM (CLEAN)
 ========================= */
 export function getCreatorStars(score: number) {
   const s = Math.max(0, Math.min(100, Number(score) || 0));
-
   const rawStars = (s / 100) * 5;
 
-  // IMPORTANT FIX: ensures minimum 1 star always shows
   const stars = Math.max(1, Math.ceil(rawStars));
 
   return Array.from({ length: 5 })
@@ -80,7 +59,7 @@ export function getCreatorStars(score: number) {
 }
 
 /* =========================
-   OPTIONAL: NORMALIZER (USED ACROSS APP)
+   NORMALIZER
 ========================= */
 export function normalizeCreator(creator: Creator) {
   const score = getCreatorScore(creator);

@@ -1,45 +1,59 @@
 "use client";
 
-import AnimatedCard from "@/app/components/ui/AnimatedCard";
-import CardShell from "@/app/components/ui/CardShell";
-import {
-  getCreatorStars,
-  getCreatorLabel,
-} from "@/app/lib/creatorIntelligence";
+import Link from "next/link";
+import UnifiedCard from "@/app/components/ui/UnifiedCard";
 
-/* -----------------------------
-   TYPES
-------------------------------*/
+import {
+  getStars,
+  getLabel,
+  getStarColor,
+} from "@/app/lib/ratingSystem";
+
+import { getCardInsightLabel } from "@/app/lib/intelligence/cardIntelligence";
+
 type Props = {
   creator: {
     id: string;
     name: string;
     category?: string;
     avatar?: string;
-    trend?: string;
-    trendColor?: string;
+    slug?: string;
   };
 
   score: number;
+  compact?: boolean;
 };
 
-/* -----------------------------
-   GLOBAL CREATOR CARD (FIXED TILE)
-------------------------------*/
-export default function CreatorCard({ creator, score }: Props) {
-  const label = getCreatorLabel(score);
-  const stars = getCreatorStars(score);
+export default function CreatorCard({ creator, score, compact }: Props) {
+  const label = getLabel(score);
+  const stars = getStars(score);
+  const insight = getCardInsightLabel(score);
+
+  /**
+   * FIXED ROUTING STRATEGY
+   * Prefer slug (your canonical system), fallback to id
+   */
+  const href = creator.slug
+    ? `/creators/${creator.slug}`
+    : `/creators/${creator.id}`;
 
   return (
-    <AnimatedCard>
-      <CardShell>
-        {/* LEFT SIDE */}
+    <Link
+      href={href}
+      style={{
+        textDecoration: "none",
+        color: "inherit",
+        display: "block",
+      }}
+    >
+      <UnifiedCard compact={compact}>
         <div
           style={{
             display: "flex",
             alignItems: "center",
             gap: 10,
             width: "100%",
+            minWidth: 0,
           }}
         >
           <img
@@ -58,8 +72,6 @@ export default function CreatorCard({ creator, score }: Props) {
             style={{
               display: "flex",
               flexDirection: "column",
-
-              // 🔥 CRITICAL: prevents vertical stretching differences
               minWidth: 0,
               flex: 1,
             }}
@@ -68,9 +80,6 @@ export default function CreatorCard({ creator, score }: Props) {
               style={{
                 margin: 0,
                 fontSize: 13,
-                lineHeight: "14px",
-
-                // 🔥 prevents wrapping size shifts
                 whiteSpace: "nowrap",
                 overflow: "hidden",
                 textOverflow: "ellipsis",
@@ -80,57 +89,50 @@ export default function CreatorCard({ creator, score }: Props) {
             </h4>
 
             {creator.category && (
-              <span
-                style={{
-                  fontSize: 11,
-                  color: "#666",
-
-                  whiteSpace: "nowrap",
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                }}
-              >
+              <span style={{ fontSize: 11, color: "#666" }}>
                 {creator.category}
               </span>
             )}
 
+            {/* LABEL (NO COLOR DRIFT) */}
             <span
               style={{
                 fontSize: 11,
                 marginTop: 2,
-                color: creator.trendColor || "#999",
+                color: "#111",
                 fontWeight: 500,
-
-                whiteSpace: "nowrap",
-                overflow: "hidden",
-                textOverflow: "ellipsis",
               }}
             >
-              {creator.trend || label}
+              {label}
+            </span>
+
+            {/* INSIGHT */}
+            <span
+              style={{
+                fontSize: 10,
+                marginTop: 3,
+                color: "#888",
+              }}
+            >
+              {insight}
             </span>
           </div>
         </div>
 
-        {/* RIGHT SIDE */}
+        {/* STARS (FIXED 5-SLOT DISPLAY) */}
         <div
           style={{
             textAlign: "right",
-            flexShrink: 0,
             marginLeft: 10,
+            fontSize: 11,
+            letterSpacing: "1px",
+            color: getStarColor(),
+            whiteSpace: "nowrap",
           }}
         >
-          <div
-            style={{
-              fontSize: 11,
-              letterSpacing: "1px",
-              color: "#f5b301",
-              whiteSpace: "nowrap",
-            }}
-          >
-            {stars}
-          </div>
+          {stars}
         </div>
-      </CardShell>
-    </AnimatedCard>
+      </UnifiedCard>
+    </Link>
   );
 }

@@ -65,8 +65,8 @@ export default function BrandPage() {
     );
   }
 
-  const brandCampaigns = campaigns.filter(
-    (c) => c.brandId?.toLowerCase() === brand.id
+  const brandCampaigns = (campaigns || []).filter(
+    (c) => c?.brandId?.toLowerCase?.() === brand.id
   );
 
   return (
@@ -158,20 +158,22 @@ export default function BrandPage() {
             marginTop: layout.cardGap,
           }}
         >
-          {topCreators.map((item, index) => (
-            <CreatorCard
-              key={safeKey(item.id, index)}
-              creator={{
-                id: item.id,
-                name: item.name,
-                category: item.category,
-                avatar: item.avatar,
-                trend: item.trend,
-                trendColor: item.trendColor,
-              }}
-              score={item.score}
-            />
-          ))}
+          {topCreators
+            .filter(Boolean)
+            .map((item, index) => (
+              <CreatorCard
+                key={safeKey(item?.id, index)}
+                creator={{
+                  id: item?.id ?? `creator-${index}`,
+                  name: item?.name ?? "Unknown Creator",
+                  category: item?.category ?? "General",
+                  avatar: item?.avatar,
+                  trend: item?.trend,
+                  trendColor: item?.trendColor,
+                }}
+                score={item?.score ?? 0}
+              />
+            ))}
         </div>
       </section>
 
@@ -187,14 +189,17 @@ export default function BrandPage() {
             marginTop: layout.cardGap,
           }}
         >
-          {brandCampaigns.map((c) => (
-            <BrandCampaignCard
-              key={c.id}
-              title={c.title}
-              niche={c.niche}
-              budget={c.budget}
-            />
-          ))}
+          {brandCampaigns
+            .filter(Boolean)
+            .map((c, index) => (
+              <BrandCampaignCard
+                key={c?.id ?? `campaign-${index}`}
+                title={c?.title ?? "Untitled Campaign"}
+                niche={c?.niche ?? "General"}
+                budget={c?.budget ?? "N/A"}
+                image={c?.image}
+              />
+            ))}
         </div>
       </section>
 

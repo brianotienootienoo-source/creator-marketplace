@@ -9,6 +9,9 @@ type Props = {
   style?: React.CSSProperties;
   hover?: boolean;
   lift?: boolean;
+
+  // NEW: layout control (ONLY affects marketplace grids)
+  compact?: boolean;
 };
 
 export default function CardShell({
@@ -17,12 +20,13 @@ export default function CardShell({
   style,
   hover = true,
   lift = false,
+  compact = false,
 }: Props) {
   return (
     <div
       className={className}
       style={{
-        padding: spacing?.md ?? 12, // ✅ SAFE FALLBACK (prevents crash)
+        padding: spacing?.md ?? 12,
         border: "1px solid #e5e7eb",
         borderRadius: radius?.md ?? 12,
         background: "#fff",
@@ -32,6 +36,10 @@ export default function CardShell({
         cursor: hover ? "pointer" : "default",
 
         overflow: "hidden",
+
+        // 🔥 KEY FIX: prevents elongated cards in grid layouts
+        width: "100%",
+        maxWidth: compact ? 280 : "100%",
 
         ...style,
       }}

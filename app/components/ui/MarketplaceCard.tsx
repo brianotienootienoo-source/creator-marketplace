@@ -6,7 +6,7 @@ import CardShell from "@/app/components/ui/CardShell";
 import Button from "@/app/components/ui/Button";
 import { spacing } from "@/app/lib/designTokens";
 
-// 🧠 6.3 Match feedback system (correct export)
+// 🧠 6.3 Match feedback system
 import { recordMatchFeedback } from "@/app/lib/matches/matchFeedbackStore";
 
 type Props = {
@@ -41,7 +41,6 @@ export default function MarketplaceCard({
   const handleClick = async () => {
     const pairId = `${creatorId ?? "unknown"}-${brandId ?? title.toLowerCase()}`;
 
-    // 🧠 6.3 FEEDBACK SIGNAL
     recordMatchFeedback({
       pairId,
       type: isAction ? "apply" : "view",
@@ -76,6 +75,12 @@ export default function MarketplaceCard({
     const target = campaignId ? `/campaigns/${campaignId}` : href;
     if (target) router.push(target);
   };
+
+  const buttonText = loading
+    ? "Loading..."
+    : applied
+    ? "Applied"
+    : actionLabel;
 
   return (
     <CardShell
@@ -143,7 +148,7 @@ export default function MarketplaceCard({
             disabled={loading || applied}
             fullWidth
           >
-            {loading ? "Loading..." : applied ? "Applied ✓" : actionLabel}
+            {buttonText}
           </Button>
         </div>
       )}

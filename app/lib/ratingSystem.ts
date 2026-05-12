@@ -1,70 +1,52 @@
-type Rating = {
-  stars: number;
-  label: string;
-  color: string;
-};
+// app/lib/ratingSystem.ts
 
-/* =========================
-   VISUAL RATING SYSTEM (TUNED)
-   - wider spread for better differentiation
-========================= */
+/**
+ * 🚨 7.8 RATING SYSTEM — LOCKED CONTRACT
+ * Single source of truth for creator rating display
+ */
 
-export function getCreatorRating(score: number): Rating {
-  const s = Math.max(0, Math.min(100, Number(score) || 0));
+export function getLabel(score: number): string {
+  const normalized = normalizeScore(score);
 
-  let stars = 1;
-  let label = "New Creator";
-  let color = "#3b82f6";
-
-  if (s >= 81) {
-    stars = 5;
-    label = "Elite Creator";
-    color = "#2563eb";
-  } else if (s >= 66) {
-    stars = 4;
-    label = "High Performer";
-    color = "#16a34a";
-  } else if (s >= 46) {
-    stars = 3;
-    label = "Mid Tier";
-    color = "#f59e0b";
-  } else if (s >= 26) {
-    stars = 2;
-    label = "Emerging";
-    color = "#f97316";
-  } else {
-    stars = 1;
-    label = "New Creator";
-    color = "#92400e";
-  }
-
-  return { stars, label, color };
+  if (normalized >= 80) return "High Performer";
+  if (normalized >= 60) return "Growing Creator";
+  if (normalized >= 40) return "Emerging Creator";
+  return "New Creator";
 }
 
-/* =========================
-   STAR OUTPUT
-========================= */
-
-export function getStars(score: number) {
-  const { stars } = getCreatorRating(score);
-
-  return Array.from({ length: 5 })
-    .map((_, i) => (i < stars ? "★" : "☆"))
-    .join("");
+/**
+ * Normalize ALL inputs to 0–100 scale
+ * Fixes your /creators bug (0–1 vs 0–100 mismatch)
+ */
+function normalizeScore(score: number): number {
+  if (score <= 1) return Math.round(score * 100);
+  return Math.max(0, Math.min(100, score));
 }
 
-/* =========================
-   COLOR ONLY
-========================= */
-
-export function getColor(score: number) {
-  return getCreatorRating(score).color;
+/**
+ * Returns filled stars (0–5)
+ */
+export function getFilledStars(score: number): number {
+  const normalized = normalizeScore(score);
+  return Math.round((normalized / 100) * 5);
 }
 
-/* =========================
-   LABEL ONLY
-========================= */
+/**
+ * ALWAYS returns full 5-star string
+ * Ensures empty stars are visible
+ */
+export function getStars(score: number): string {
+  const filled = getFilledStars(score);
+  const empty = 5 - filled;
 
-export function getLabel(score: number) {
-  return getCreatorRating(score).label;
+  return "★".repeat(filled) + "☆".repeat(empty);
 }
+
+/**
+ * Single design color for stars
+ */
+export function getStarColor(): string {
+  return "#f5b301";
+}
+
+export const RATING_SYSTEM_VERSION = "7.8-locked";
