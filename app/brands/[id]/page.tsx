@@ -26,12 +26,12 @@ function safeKey(id: unknown, index: number) {
    SAFE TEXT FORMATTER
 ------------------------------*/
 function titleCase(value?: string) {
-  if (!value || typeof value !== "string") return "";
+  if (typeof value !== "string" || !value) return "";
 
   return value
     .toLowerCase()
     .split(" ")
-    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .map((w) => (w ? w.charAt(0).toUpperCase() + w.slice(1) : ""))
     .join(" ");
 }
 
@@ -40,47 +40,59 @@ function titleCase(value?: string) {
 ------------------------------*/
 export default function BrandPage() {
   const params = useParams();
-  const rawId = (params?.id as string | undefined)?.toLowerCase() || "";
+
+  const rawId =
+    typeof params?.id === "string"
+      ? params.id.toLowerCase()
+      : "";
 
   const brand = getBrandById(rawId);
+
   const [topCreators, setTopCreators] = useState<any[]>([]);
 
   useEffect(() => {
     if (!rawId || !brand) return;
 
-    function loadFeed() {
-      const creators = getCreatorUniverse();
+    const creators = getCreatorUniverse();
 
-      const enriched = creators
-        .map((c) => {
-          let score = c.score ?? c.stats?.followers ?? 0;
+    const enriched = creators
+      .map((c) => {
+        let score = c.score ?? c.stats?.followers ?? 0;
 
-          // simple brand affinity boost (safe + deterministic)
-          if (brand?.name && c.category) {
-            const match =
-              c.category.toLowerCase() === brand.category?.toLowerCase();
+        // safe category matching
+        const creatorCategory =
+          c.category?.toLowerCase?.();
 
-            if (match) score += 15;
-          }
+        const brandCategory =
+          brand.category?.toLowerCase?.();
 
-          return {
-            id: c.id,
-            name: c.name,
-            category: c.category,
-            avatar: c.avatar,
-            score,
-            trend: c.trend,
-            trendColor: c.trendColor,
-          };
-        })
-        .sort((a, b) => b.score - a.score)
-        .slice(0, 10);
+        if (
+          creatorCategory &&
+          brandCategory &&
+          creatorCategory === brandCategory
+        ) {
+          score += 15;
+        }
 
-      setTopCreators(enriched);
-    }
+        return {
+          id: c.id,
+          name: c.name,
+          category: c.category,
+          avatar: c.avatar,
+          score,
+          trend: c.trend,
+          trendColor: c.trendColor,
+        };
+      })
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 10);
 
-    loadFeed();
-  }, [rawId, brand]);
+    setTopCreators(enriched);
+
+    // 🔒 IMPORTANT:
+    // ONLY depend on rawId
+    // brand object reference changes every render
+  }, [rawId]);
 
   if (!brand) {
     return (
@@ -91,12 +103,11 @@ export default function BrandPage() {
   }
 
   const brandCampaigns = (campaigns || []).filter(
-    (c) => c?.brandId?.toLowerCase?.() === brand.id
+    (c) => c?.brandId?.toLowerCase?.() === rawId
   );
 
   return (
     <main style={{ padding: layout.pagePadding }}>
-
       {/* HERO */}
       <section
         style={{
@@ -178,7 +189,8 @@ export default function BrandPage() {
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))",
+            gridTemplateColumns:
+              "repeat(auto-fill, minmax(220px, 1fr))",
             gap: layout.cardGap,
             marginTop: layout.cardGap,
           }}
@@ -207,7 +219,8 @@ export default function BrandPage() {
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))",
+            gridTemplateColumns:
+              "repeat(auto-fill, minmax(220px, 1fr))",
             gap: layout.cardGap,
             marginTop: layout.cardGap,
           }}
@@ -223,7 +236,6 @@ export default function BrandPage() {
           ))}
         </div>
       </section>
-
     </main>
   );
 }

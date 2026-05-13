@@ -1,5 +1,6 @@
 import { getAllBrands } from "@/app/lib/brandsStore";
 import { campaigns } from "@/app/data/campaigns";
+import { normalizeBrand } from "@/app/lib/brands/normalizeBrand";
 
 /* -----------------------------
    UNIFIED BRAND DTO (SOURCE OF TRUTH)
@@ -14,10 +15,11 @@ export function getBrandUniverse() {
 
     const activeCampaigns = relatedCampaigns.length;
 
-    const demandScore =
-      b.demandScore + activeCampaigns * 2;
+    const baseDemand = b?.demandScore ?? b?.demand ?? 0;
 
-    return {
+    const demandScore = baseDemand + activeCampaigns * 2;
+
+    return normalizeBrand({
       id: b.id,
       name: b.name,
       description: b.description,
@@ -30,6 +32,6 @@ export function getBrandUniverse() {
       creatorFit: b.creatorFit,
 
       campaignCount: activeCampaigns,
-    };
+    });
   });
 }

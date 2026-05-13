@@ -1,60 +1,36 @@
+import type { BrandContract } from "@/app/lib/contracts/brandContracts";
+import { getBrandUniverse } from "@/app/lib/brandUniverse";
+
 /* -----------------------------
    NORMALISE BRAND ID
 ------------------------------*/
-export function normalizeBrandId(id: string) {
-  return id?.toLowerCase()?.trim();
+export function normalizeBrandId(id?: string): string {
+  if (typeof id !== "string") return "";
+  return id.toLowerCase().trim();
 }
 
 /* -----------------------------
-   BRAND LOOKUP (TEMPORARY LOCAL SOURCE)
-   NOTE: This will be replaced by brandUniverse.ts integration
+   GET ALL BRANDS
+   🔒 SINGLE SOURCE OF TRUTH
 ------------------------------*/
-const fallbackBrands = [
-  {
-    id: "netflix",
-    name: "Netflix",
-    description: "Global streaming platform producing original films and series.",
-    category: "Entertainment",
-    demandScore: 92,
-    status: "active",
-    budgetRange: "$300 - $800",
-    creatorFit: "Film & TV creators",
-  },
-  {
-    id: "nike",
-    name: "Nike",
-    description: "Leading global sportswear and performance brand.",
-    category: "Fitness & Lifestyle",
-    demandScore: 88,
-    status: "active",
-    budgetRange: "$200 - $1000",
-    creatorFit: "Fitness & lifestyle creators",
-  },
-  {
-    id: "spotify",
-    name: "Spotify",
-    description: "Digital music streaming service connecting artists and listeners.",
-    category: "Music",
-    demandScore: 85,
-    status: "active",
-    budgetRange: "$150 - $600",
-    creatorFit: "Music creators",
-  },
-];
-
-/* -----------------------------
-   GET ALL BRANDS (SAFE SOURCE)
-   NOW DERIVED FROM SINGLE PLACE
-------------------------------*/
-export function getAllBrands() {
-  return fallbackBrands;
+export function getAllBrands(): BrandContract[] {
+  return getBrandUniverse();
 }
 
 /* -----------------------------
    GET BRAND BY ID
 ------------------------------*/
-export function getBrandById(id: string) {
+export function getBrandById(
+  id?: string
+): BrandContract | undefined {
   const normalizedId = normalizeBrandId(id);
 
-  return fallbackBrands.find((b) => b.id === normalizedId);
+  if (!normalizedId) return undefined;
+
+  const brands = getBrandUniverse();
+
+  return brands.find((b) => {
+    const brandId = normalizeBrandId(b?.id);
+    return brandId === normalizedId;
+  });
 }

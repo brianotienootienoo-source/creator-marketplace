@@ -2,6 +2,11 @@ import { getCreatorUniverse } from "@/app/lib/creatorUniverse";
 import { getBrandUniverse } from "@/app/lib/brandUniverse";
 import { buildMatches } from "@/app/lib/matchEngine";
 
+import type {
+  BrandContract,
+  BrandMatchContract,
+} from "@/app/lib/contracts/brandContracts";
+
 /* -----------------------------
    TYPES
 ------------------------------*/
@@ -32,10 +37,15 @@ type FeedItem =
     };
 
 /* -----------------------------
-   SEED
+   SEED (STABLE)
 ------------------------------*/
+let cachedSeed: number | null = null;
+
 function getSeed() {
-  return Date.now() + Math.floor(Math.random() * 10000);
+  if (!cachedSeed) {
+    cachedSeed = Date.now();
+  }
+  return cachedSeed;
 }
 
 /* -----------------------------
@@ -53,8 +63,8 @@ function normalizeCreatorScore(score: number) {
   return Math.log10((score ?? 0) + 1) * 40;
 }
 
-function normalizeBrandScore(demand: number) {
-  return Math.log10((demand ?? 1) + 1) * 50;
+function normalizeBrandScore(demandScore: number) {
+  return Math.log10((demandScore ?? 1) + 1) * 50;
 }
 
 /* -----------------------------
@@ -64,8 +74,12 @@ export function buildFeedV2(): FeedItem[] {
   const seed = getSeed();
 
   const creators = getCreatorUniverse();
-  const brands = getBrandUniverse();
-  const matches = buildMatches();
+
+  // 🔒 CONTRACT LOCK
+  const brands: BrandContract[] = getBrandUniverse();
+
+  // 🔒 CONTRACT LOCK
+  const matches: BrandMatchContract[] = buildMatches();
 
   const feed: FeedItem[] = [];
 
@@ -88,14 +102,14 @@ export function buildFeedV2(): FeedItem[] {
   );
 
   /* -----------------------------
-     BRANDS (NOW FROM UNIVERSE)
+     BRANDS
   ------------------------------*/
   feed.push(
     ...brands.map((b, i) => ({
       type: "brand" as const,
       id: b.id,
       name: b.name,
-      subtitle: b.description,
+      subtitle: b.description ?? "Brand Opportunity",
       score:
         normalizeBrandScore(b.demandScore ?? 1) +
         jitter(seed, i + 100) * 12,
@@ -108,10 +122,12 @@ export function buildFeedV2(): FeedItem[] {
   feed.push(
     ...matches.map((m, i) => ({
       type: "match" as const,
-      id: m?.id ?? `match-${i}`,
-      name: m?.name ?? "Match",
-      subtitle: m?.reason ?? "match",
-      score: (m?.score ?? 0) + jitter(seed, i + 200) * 10,
+      id: m.id ?? `match-${i}`,
+      name: m.name ?? "Match",
+      subtitle: m.reason ?? "Creator Match",
+      score:
+        (m.score ?? 0) +
+        jitter(seed, i + 200) * 10,
     }))
   );
 

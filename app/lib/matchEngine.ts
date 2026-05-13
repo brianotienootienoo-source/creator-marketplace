@@ -1,38 +1,49 @@
-import { getCreatorUniverse } from "@/app/lib/creatorUniverse";
 import { getBrandUniverse } from "@/app/lib/brandUniverse";
+import { getCreatorUniverse } from "@/app/lib/creatorUniverse";
 import { getEngagementBoost } from "./engagementMemory";
 
 /**
- * CORE MATCH ENGINE (UNIFIED)
+ * CORE MATCH ENGINE (BRAND CONTRACT LOCKED)
  */
 export function getMatches(brandId?: string) {
   const creators = getCreatorUniverse();
   const brands = getBrandUniverse();
 
-  const targetBrand = brands.find((b) => b.id === brandId);
+  const normalizedBrandId =
+    brandId?.toLowerCase?.()?.trim() ?? "";
+
+  const targetBrand = brands.find(
+    (b) => b.id?.toLowerCase?.() === normalizedBrandId
+  );
 
   return creators
     .map((creator) => {
-      let score = creator.score ?? 0;
+      let score = creator?.score ?? creator?.stats?.followers ?? 0;
 
       if (targetBrand) {
-        const creatorCategory = creator.category?.toLowerCase();
-        const brandNiche = targetBrand.category?.toLowerCase();
+        const creatorCategory =
+          creator.category?.toLowerCase?.();
+
+        const brandCategory =
+          targetBrand.category?.toLowerCase?.();
 
         if (
           creatorCategory &&
-          brandNiche &&
-          creatorCategory === brandNiche
+          brandCategory &&
+          creatorCategory === brandCategory
         ) {
           score += 15;
         }
 
-        const engagementBoost = getEngagementBoost(
-          targetBrand.id,
-          creator.id
-        );
-
-        score += engagementBoost;
+        // 🔒 safe engagement boost (no crash if undefined)
+        try {
+          score += getEngagementBoost(
+            targetBrand.id,
+            creator.id
+          ) ?? 0;
+        } catch {
+          // fail silently (engine must NEVER crash feed)
+        }
       }
 
       return {
@@ -40,11 +51,11 @@ export function getMatches(brandId?: string) {
         name: creator.name,
         category: creator.category,
         avatar: creator.avatar,
-        followers: creator.stats?.followers ?? creator.followers ?? 0,
+        followers: creator.followers,
         score: Math.round(score),
         trend: creator.trend,
         trendColor: creator.trendColor,
-        reason: "unified match engine",
+        reason: "brand-contract-lock",
       };
     })
     .sort((a, b) => b.score - a.score);
@@ -52,7 +63,6 @@ export function getMatches(brandId?: string) {
 
 /**
  * BACKWARD COMPATIBILITY WRAPPER
- * (CRITICAL: supports old callers safely)
  */
 export function buildMatches(brandId?: string) {
   return getMatches(brandId);

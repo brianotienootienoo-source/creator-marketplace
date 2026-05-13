@@ -1,47 +1,47 @@
 import { getMatches } from "@/app/lib/matchEngine";
 import { getBrandUniverse } from "@/app/lib/brandUniverse";
 
-/* -----------------------------
-   SAFE BRAND INTELLIGENCE ENGINE
-------------------------------*/
+/**
+ * BRAND INTELLIGENCE ENGINE (FULL CONTRACT LOCK)
+ */
 export function getBrandIntelligence(brandId: string) {
-  const normalizedId = brandId?.toLowerCase?.()?.trim();
+  const normalizedId =
+    brandId?.toLowerCase?.()?.trim() ?? "";
 
   const matches = getMatches();
   const brands = getBrandUniverse();
 
   const targetBrand = brands.find(
-    (b) => b.id?.toLowerCase?.() === normalizedId
+    (b) => b.id?.toLowerCase?.()?.trim?.() === normalizedId
   );
 
-  // 🛡 SAFE GUARD: prevent runtime crash
+  /**
+   * 🔒 CONTRACT RULE:
+   * matchEngine returns FLAT STRUCTURE ONLY
+   */
   const safeMatches = matches.filter((m) => {
     if (!m) return false;
 
-    // case 1: new structure (flattened / safe)
-    if (m.brandId) {
-      return m.brandId?.toLowerCase?.() === normalizedId;
-    }
+    const matchBrandId =
+      m?.brandId?.toLowerCase?.()?.trim?.();
 
-    // case 2: legacy structure (nested brand object)
-    if (m.brand?.id) {
-      return m.brand.id?.toLowerCase?.() === normalizedId;
-    }
-
-    return false;
+    return matchBrandId === normalizedId;
   });
 
   const totalMatches = safeMatches.length;
 
   const avgScore =
-    totalMatches === 0
-      ? 0
-      : safeMatches.reduce((acc, m) => acc + (m.score ?? 0), 0) /
-        totalMatches;
+    totalMatches > 0
+      ? safeMatches.reduce(
+          (acc, m) => acc + (m?.score ?? 0),
+          0
+        ) / totalMatches
+      : 0;
 
-  const demandScore = targetBrand
-    ? (targetBrand.demandScore ?? 0) + totalMatches * 3
-    : totalMatches * 2;
+  const baseDemand = targetBrand?.demandScore ?? 0;
+
+  const demandScore =
+    baseDemand + totalMatches * 3;
 
   return {
     brandId: normalizedId,
