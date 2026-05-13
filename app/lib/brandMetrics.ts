@@ -1,12 +1,15 @@
 import { campaigns } from "@/app/data/campaigns";
-import { getBrandOpportunities } from "@/app/lib/feed";
+import { getBrandUniverse } from "@/app/lib/brandUniverse";
 
 export function getBrandMetrics(brandId: string) {
-  const brands = getBrandOpportunities();
-  const brand = brands.find((b) => b.id === brandId);
+  const brands = getBrandUniverse();
+
+  const normalizedId = brandId?.toLowerCase?.() ?? "";
+
+  const brand = brands.find((b) => b.id === normalizedId);
 
   const brandCampaigns = campaigns.filter(
-    (c) => c.brandId?.toLowerCase() === brandId.toLowerCase()
+    (c) => c.brandId?.toLowerCase() === normalizedId
   );
 
   // 📊 1. TOTAL CAMPAIGNS
@@ -20,7 +23,7 @@ export function getBrandMetrics(brandId: string) {
 
   // 💰 3. BETTER BUDGET ESTIMATION
   const estimatedBudget = brandCampaigns.reduce((acc, c) => {
-    const numbers = c.budget.match(/\d+/g);
+    const numbers = c.budget?.match(/\d+/g);
 
     if (!numbers || numbers.length === 0) return acc;
 

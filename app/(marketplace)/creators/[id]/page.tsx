@@ -1,4 +1,5 @@
-import { creators } from "@/app/data/creators";
+import { creators as legacyCreators } from "@/app/data/creators";
+import { adaptLegacyCreators } from "@/app/lib/marketplace/adapters/legacyCreatorsAdapter";
 
 export default async function CreatorProfilePage({
   params,
@@ -6,6 +7,8 @@ export default async function CreatorProfilePage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
+
+  const creators = adaptLegacyCreators(legacyCreators);
 
   const creator = creators.find((c) => c.id === id);
 
@@ -61,20 +64,23 @@ export default async function CreatorProfilePage({
             left: 6,
             width: 92,
             height: 92,
-            borderRadius: "50%",
-            border: "4px solid white",
+            borderRadius: "9999px",
             overflow: "hidden",
+            border: "4px solid white",
             background: "#eee",
             boxShadow: "0 6px 16px rgba(0,0,0,0.18)",
+            flexShrink: 0,
           }}
         >
           <img
             src={avatarSrc}
-            alt={creator.name}
+            alt={creator.displayName}
             style={{
               width: "100%",
               height: "100%",
               objectFit: "cover",
+              display: "block",
+              borderRadius: "9999px",
             }}
           />
         </div>
@@ -90,7 +96,6 @@ export default async function CreatorProfilePage({
           paddingRight: 16,
         }}
       >
-        {/* NAME */}
         <h1
           style={{
             fontSize: 28,
@@ -99,10 +104,9 @@ export default async function CreatorProfilePage({
             lineHeight: 1.05,
           }}
         >
-          {creator.name}
+          {creator.displayName}
         </h1>
 
-        {/* @USERNAME */}
         <p
           style={{
             color: "#666",
@@ -110,10 +114,9 @@ export default async function CreatorProfilePage({
             fontSize: 15,
           }}
         >
-          @{creator.slug}
+          @{creator.username}
         </p>
 
-        {/* DESCRIPTION */}
         <p
           style={{
             marginTop: 12,
@@ -121,10 +124,9 @@ export default async function CreatorProfilePage({
             lineHeight: 1.6,
           }}
         >
-          Content creator in the {creator.category} space.
+          Content creator in the {creator.niche} space.
         </p>
 
-        {/* META ROW */}
         <div
           style={{
             marginTop: 16,
@@ -135,8 +137,10 @@ export default async function CreatorProfilePage({
             flexWrap: "wrap",
           }}
         >
-          <span>Category: {creator.category}</span>
-          <span>Followers: {creator.followers.toLocaleString()}</span>
+          <span>Category: {creator.niche}</span>
+          <span>
+            Followers: {creator.stats.followers.toLocaleString()}
+          </span>
         </div>
       </div>
 

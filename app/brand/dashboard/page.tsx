@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { campaigns } from "@/app/data/campaigns";
-import { creators } from "@/app/data/creators"; // 🔥 ADD THIS
+import { creators as legacyCreators } from "@/app/data/creators";
+import { adaptLegacyCreators } from "@/app/lib/marketplace/adapters/legacyCreatorsAdapter";
 
 type Proposal = {
   id: string;
@@ -33,6 +34,8 @@ export default function BrandDashboard() {
       const data = await res.json();
       const all: Proposal[] = data?.proposals || [];
 
+      const creators = adaptLegacyCreators(legacyCreators);
+
       const filtered = all.filter(
         (p) => normalize(p.brandId) === brandId
       );
@@ -53,21 +56,26 @@ export default function BrandDashboard() {
           );
 
         // -------------------------
-        // CREATOR ENRICHMENT 🔥 NEW
+        // CREATOR ENRICHMENT (MIGRATED)
         // -------------------------
         const creator = creators.find(
           (c) =>
-            normalize(c.slug) === normalize(p.creatorId) ||
-            normalize(c.id) === normalize(p.creatorId)
+            normalize(c.id) === normalize(p.creatorId) ||
+            normalize(c.slug) === normalize(p.creatorId)
         );
 
         return {
           ...p,
-          campaignTitle: campaign?.title || p.campaignId || "Campaign Pending",
+
+          campaignTitle:
+            campaign?.title || p.campaignId || "Campaign Pending",
           campaignBudget: campaign?.budget || "TBD",
 
-          // 🔥 FIXED CREATOR DISPLAY
-          creatorName: creator?.name || p.creatorId,
+          // MIGRATED CREATOR DISPLAY
+          creatorName:
+            creator?.displayName ||
+            creator?.username ||
+            p.creatorId,
         };
       });
 
@@ -125,14 +133,19 @@ export default function BrandDashboard() {
 
                 <hr style={{ margin: "10px 0" }} />
 
-                {/* 🔥 FIXED CREATOR NAME */}
                 <p style={{ fontWeight: 600 }}>
                   Creator: {p.creatorName}
                 </p>
 
                 <p style={{ marginTop: 6 }}>{p.message}</p>
 
-                <p style={{ fontSize: 11, color: "#999", marginTop: 8 }}>
+                <p
+                  style={{
+                    fontSize: 11,
+                    color: "#999",
+                    marginTop: 8,
+                  }}
+                >
                   Status: {p.status}
                 </p>
               </div>

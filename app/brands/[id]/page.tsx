@@ -2,12 +2,16 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
+
 import { getBrandById } from "@/app/lib/brandUtils";
 import { campaigns } from "@/app/data/campaigns";
+import { getCreatorUniverse } from "@/app/lib/creatorUniverse";
+
 import BrandCampaignCard from "@/app/components/ui/BrandCampaignCard";
 import BrandActionCardClient from "@/app/components/client/BrandActionCardClient";
 import Button from "@/app/components/ui/Button";
 import CreatorCard from "@/app/components/ui/CreatorCard";
+
 import { layout, spacing, radius } from "@/app/lib/designTokens";
 
 /* -----------------------------
@@ -19,9 +23,11 @@ function safeKey(id: unknown, index: number) {
 }
 
 /* -----------------------------
-   TEXT FORMATTER
+   SAFE TEXT FORMATTER
 ------------------------------*/
-function titleCase(value: string) {
+function titleCase(value?: string) {
+  if (!value || typeof value !== "string") return "";
+
   return value
     .toLowerCase()
     .split(" ")
@@ -40,22 +46,41 @@ export default function BrandPage() {
   const [topCreators, setTopCreators] = useState<any[]>([]);
 
   useEffect(() => {
-    async function loadFeed() {
-      if (!rawId) return;
+    if (!rawId || !brand) return;
 
-      try {
-        const res = await fetch(`/api/feed?brandId=${rawId}&limit=10`);
-        const json = await res.json();
+    function loadFeed() {
+      const creators = getCreatorUniverse();
 
-        setTopCreators(json?.data || []);
-      } catch (err) {
-        console.error("Feed load failed:", err);
-        setTopCreators([]);
-      }
+      const enriched = creators
+        .map((c) => {
+          let score = c.score ?? c.stats?.followers ?? 0;
+
+          // simple brand affinity boost (safe + deterministic)
+          if (brand?.name && c.category) {
+            const match =
+              c.category.toLowerCase() === brand.category?.toLowerCase();
+
+            if (match) score += 15;
+          }
+
+          return {
+            id: c.id,
+            name: c.name,
+            category: c.category,
+            avatar: c.avatar,
+            score,
+            trend: c.trend,
+            trendColor: c.trendColor,
+          };
+        })
+        .sort((a, b) => b.score - a.score)
+        .slice(0, 10);
+
+      setTopCreators(enriched);
     }
 
     loadFeed();
-  }, [rawId]);
+  }, [rawId, brand]);
 
   if (!brand) {
     return (
@@ -91,7 +116,7 @@ export default function BrandPage() {
           </h1>
 
           <p style={{ marginTop: spacing.sm, color: "#555" }}>
-            {titleCase(brand.desc)}
+            {titleCase(brand.description)}
           </p>
 
           <Button style={{ marginTop: spacing.lg }}>
@@ -135,7 +160,7 @@ export default function BrandPage() {
             </p>
 
             <p style={{ fontSize: 13, fontWeight: 600, margin: 0 }}>
-              ${(brand.demand ?? 1) * 10}+
+              {brand.budgetRange ?? "N/A"}
             </p>
           </div>
         </div>
@@ -158,22 +183,20 @@ export default function BrandPage() {
             marginTop: layout.cardGap,
           }}
         >
-          {topCreators
-            .filter(Boolean)
-            .map((item, index) => (
-              <CreatorCard
-                key={safeKey(item?.id, index)}
-                creator={{
-                  id: item?.id ?? `creator-${index}`,
-                  name: item?.name ?? "Unknown Creator",
-                  category: item?.category ?? "General",
-                  avatar: item?.avatar,
-                  trend: item?.trend,
-                  trendColor: item?.trendColor,
-                }}
-                score={item?.score ?? 0}
-              />
-            ))}
+          {topCreators.map((item, index) => (
+            <CreatorCard
+              key={safeKey(item?.id, index)}
+              creator={{
+                id: item?.id,
+                name: item?.name,
+                category: item?.category,
+                avatar: item?.avatar,
+                trend: item?.trend,
+                trendColor: item?.trendColor,
+              }}
+              score={item?.score ?? 0}
+            />
+          ))}
         </div>
       </section>
 
@@ -189,17 +212,15 @@ export default function BrandPage() {
             marginTop: layout.cardGap,
           }}
         >
-          {brandCampaigns
-            .filter(Boolean)
-            .map((c, index) => (
-              <BrandCampaignCard
-                key={c?.id ?? `campaign-${index}`}
-                title={c?.title ?? "Untitled Campaign"}
-                niche={c?.niche ?? "General"}
-                budget={c?.budget ?? "N/A"}
-                image={c?.image}
-              />
-            ))}
+          {brandCampaigns.map((c, index) => (
+            <BrandCampaignCard
+              key={c?.id ?? `campaign-${index}`}
+              title={c?.title ?? "Untitled Campaign"}
+              niche={c?.niche ?? "General"}
+              budget={c?.budget ?? "N/A"}
+              image={c?.image}
+            />
+          ))}
         </div>
       </section>
 

@@ -1,48 +1,49 @@
-import { creators as seedCreators } from "@/app/data/creators";
+import { adaptLegacyCreators } from "@/app/lib/marketplace/adapters/legacyCreatorsAdapter";
 import { getCreatorScore } from "@/app/lib/creatorIntelligence";
 import { getMomentumScore } from "@/app/lib/momentum";
 import { getTrendLabel } from "@/app/lib/trendLabel";
+
+// 🔥 SINGLE LEGACY ENTRY POINT ONLY (DO NOT USE ELSEWHERE)
+import { creators as legacyCreators } from "@/app/data/creators";
 
 /* -----------------------------
    UNIFIED CREATOR DTO (SOURCE OF TRUTH)
 ------------------------------*/
 export function getCreatorUniverse() {
-  return seedCreators.map((c) => {
+  const adaptedCreators = adaptLegacyCreators(legacyCreators);
+
+  return adaptedCreators.map((c) => {
     const baseScore = getCreatorScore({
       id: c.id,
-      name: c.name,
-      category: c.category,
-      followers: c.followers,
-      engagementRate: c.engagementRate,
-      pastBrandScore: c.pastBrandScore,
+      name: c.displayName,
+      category: c.niche,
+      followers: c.stats?.followers ?? 0,
+      engagementRate: c.stats?.engagementRate ?? 0,
+      pastBrandScore: c.ratingScore,
     });
 
-    const momentum = getMomentumScore(c.id);
+    const momentum = getMomentumScore(c.id) ?? 0;
 
     const score = Math.round(baseScore + momentum);
 
-    const trend = getTrendLabel(score, momentum ?? 0);
+    const trend = getTrendLabel(score, momentum);
 
     return {
-      // 🔑 CORE IDENTITY (MUST MATCH ACROSS ENTIRE APP)
       id: c.id,
       slug: c.slug,
 
-      name: c.name,
-      category: c.category,
+      name: c.displayName,
+      category: c.niche,
 
-      // 🔥 SINGLE SOURCE OF TRUTH FOR AVATAR
       avatar: c.avatar || `https://i.pravatar.cc/150?u=${c.id}`,
 
-      followers: c.followers,
-      engagementRate: c.engagementRate,
-      pastBrandScore: c.pastBrandScore,
+      followers: c.stats?.followers ?? 0,
+      engagementRate: c.stats?.engagementRate ?? 0,
+      pastBrandScore: c.ratingScore ?? 0,
 
-      // scoring
       score,
       momentum,
 
-      // UI enrichment (USED BY BOTH PAGES)
       trend: trend.label,
       trendColor: trend.color,
     };

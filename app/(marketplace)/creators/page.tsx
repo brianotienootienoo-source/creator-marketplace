@@ -1,5 +1,5 @@
 import CreatorCard from "@/app/components/ui/CreatorCard";
-import { creators } from "@/app/data/creators";
+import { mockCreators } from "@/app/lib/marketplace/mock/mockCreators";
 import { gridSystem } from "@/app/lib/design/gridSystem";
 
 export default function CreatorsPage() {
@@ -14,21 +14,19 @@ export default function CreatorsPage() {
           gap: gridSystem.gap,
         }}
       >
-        {creators.map((creator) => (
+        {mockCreators.map((creator) => (
           <CreatorCard
             key={creator.id}
             creator={{
               id: creator.id,
-              name: creator.name,
-              category: creator.category,
+              name: creator.displayName,
+              category: creator.niche,
               avatar: creator.avatar,
             }}
-            score={
-              Math.round(
-                (creator.engagementRate * 100) +
-                (creator.followers / 10000)
-              )
-            }
+            score={Math.round(
+              (creator.stats.engagementRate * 100) +
+              (creator.stats.followers / 10000)
+            )}
             compact={true}
           />
         ))}

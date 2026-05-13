@@ -1,4 +1,4 @@
-import { creators } from "@/app/data/creators";
+import { getCreatorUniverse } from "@/app/lib/creatorUniverse";
 import { getBrandOpportunities } from "@/app/lib/feed";
 import { getCreatorScore } from "./creatorIntelligence";
 import { getEngagementBoost } from "./engagementMemory";
@@ -6,6 +6,8 @@ import { getEngagementBoost } from "./engagementMemory";
 export function getFeed(brandId?: string) {
   const brands = getBrandOpportunities();
   const targetBrand = brands.find((b) => b.id === brandId);
+
+  const creators = getCreatorUniverse();
 
   return creators
     .map((creator) => {
@@ -20,13 +22,13 @@ export function getFeed(brandId?: string) {
       let score = baseScore;
 
       if (targetBrand) {
-        const creatorCategory = creator.category?.toLowerCase();
+        const creatorNiche = creator.category?.toLowerCase();
         const brandNiche = targetBrand.niche?.toLowerCase();
 
         if (
-          creatorCategory &&
+          creatorNiche &&
           brandNiche &&
-          creatorCategory === brandNiche
+          creatorNiche === brandNiche
         ) {
           score += 15;
         }

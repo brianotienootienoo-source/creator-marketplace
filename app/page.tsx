@@ -7,15 +7,9 @@ import { campaigns } from "@/app/data/campaigns";
 import { buildFeedV2 } from "@/app/lib/feedV2";
 import ViewAllButton from "@/app/components/ui/ViewAllButton";
 
-/* -----------------------------
-   STREAM SYSTEM
-------------------------------*/
 import { routeFeedStreams } from "@/app/lib/streams/streamRouter";
 import { getActiveStreamMode } from "@/app/lib/streams/streamSwitchEngine";
 
-/* -----------------------------
-   TYPES
-------------------------------*/
 type FeedItem = {
   type?: "creator" | "brand" | "match";
   id?: string;
@@ -31,49 +25,29 @@ export default function Home() {
   const [hydrated, setHydrated] = useState(false);
 
   /* -----------------------------
-     FEED LOAD (CLIENT ONLY, SAFE)
+     LOAD FEED
   ------------------------------*/
   useEffect(() => {
     try {
       const raw = buildFeedV2();
-
-      if (!Array.isArray(raw)) {
-        setFeed([]);
-        return;
-      }
-
-      setFeed(raw);
-    } catch {
+      setFeed(Array.isArray(raw) ? raw : []);
+    } catch (err) {
+      console.error("Feed load failed:", err);
       setFeed([]);
     }
   }, []);
 
-  /* -----------------------------
-     HYDRATION FLAG
-  ------------------------------*/
   useEffect(() => {
     setHydrated(true);
   }, []);
 
-  /* -----------------------------
-     STREAMS (SAFE + STABLE)
-  ------------------------------*/
-  const streams = useMemo(() => {
-    return routeFeedStreams(feed);
-  }, [feed]);
+  const streams = useMemo(() => routeFeedStreams(feed), [feed]);
 
-  /* -----------------------------
-     STABLE MODE (NO HYDRATION FLIP)
-  ------------------------------*/
   const mode = useMemo(() => {
-    // IMPORTANT: ONLY compute AFTER hydration
     if (!hydrated) return "forYou";
     return getActiveStreamMode();
   }, [hydrated]);
 
-  /* -----------------------------
-     SAFE FALLBACK FEED
-  ------------------------------*/
   const activeFeed = feed ?? [];
 
   const creators = activeFeed.filter((f) => f?.type === "creator");
@@ -81,7 +55,6 @@ export default function Home() {
 
   return (
     <main style={{ padding: 40, fontFamily: "sans-serif" }}>
-
       {/* HERO */}
       <section style={{ marginBottom: 40 }}>
         <h1 style={{ fontSize: 32, fontWeight: 700 }}>
@@ -125,7 +98,13 @@ export default function Home() {
       <section style={{ marginBottom: 40 }}>
         <h2>Live Campaigns</h2>
 
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))", gap: 12 }}>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))",
+            gap: 12,
+          }}
+        >
           {campaigns.map((campaign) => (
             <MarketplaceCard
               key={campaign.id}
@@ -192,14 +171,13 @@ export default function Home() {
                     category: c.category,
                     avatar: c.avatar,
                   }}
-                  score={c.score}
+                  score={c.score ?? 0}
                 />
               </div>
             ))
           )}
         </div>
       </section>
-
     </main>
   );
 }

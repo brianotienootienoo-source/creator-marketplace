@@ -1,99 +1,53 @@
-import { getBrandMetrics } from "@/app/lib/brandMetrics";
-import { buildMatches } from "@/app/lib/matchEngine";
+import { getMatches } from "@/app/lib/matchEngine";
+import { getBrandUniverse } from "@/app/lib/brandUniverse";
 
-type BrandInsight = {
-  label: string;
-  score: number;
-  tone: "positive" | "neutral" | "warning";
-};
-
+/* -----------------------------
+   SAFE BRAND INTELLIGENCE ENGINE
+------------------------------*/
 export function getBrandIntelligence(brandId: string) {
-  const metrics = getBrandMetrics(brandId);
-  const matches = buildMatches();
+  const normalizedId = brandId?.toLowerCase?.()?.trim();
 
-  // filter only this brand's matches
-  const brandMatches = matches.filter((m) => m.brand.id === brandId);
+  const matches = getMatches();
+  const brands = getBrandUniverse();
 
-  const creatorCompetition = brandMatches.length;
+  const targetBrand = brands.find(
+    (b) => b.id?.toLowerCase?.() === normalizedId
+  );
 
-  // -----------------------------
-  // 1. DEMAND INTELLIGENCE
-  // -----------------------------
-  let demandLabel: BrandInsight;
+  // 🛡 SAFE GUARD: prevent runtime crash
+  const safeMatches = matches.filter((m) => {
+    if (!m) return false;
 
-  if (metrics.demandScore > 120) {
-    demandLabel = {
-      label: "🔥 High demand brand",
-      score: metrics.demandScore,
-      tone: "positive",
-    };
-  } else if (metrics.demandScore > 70) {
-    demandLabel = {
-      label: "⚖️ Moderate demand brand",
-      score: metrics.demandScore,
-      tone: "neutral",
-    };
-  } else {
-    demandLabel = {
-      label: "🟡 Emerging brand",
-      score: metrics.demandScore,
-      tone: "warning",
-    };
-  }
+    // case 1: new structure (flattened / safe)
+    if (m.brandId) {
+      return m.brandId?.toLowerCase?.() === normalizedId;
+    }
 
-  // -----------------------------
-  // 2. CREATOR COMPETITION
-  // -----------------------------
-  let competitionLabel: BrandInsight;
+    // case 2: legacy structure (nested brand object)
+    if (m.brand?.id) {
+      return m.brand.id?.toLowerCase?.() === normalizedId;
+    }
 
-  if (creatorCompetition > 20) {
-    competitionLabel = {
-      label: "⚔️ High creator competition",
-      score: creatorCompetition,
-      tone: "warning",
-    };
-  } else if (creatorCompetition > 8) {
-    competitionLabel = {
-      label: "⚖️ Moderate competition",
-      score: creatorCompetition,
-      tone: "neutral",
-    };
-  } else {
-    competitionLabel = {
-      label: "🟢 Low competition (opportunity)",
-      score: creatorCompetition,
-      tone: "positive",
-    };
-  }
+    return false;
+  });
 
-  // -----------------------------
-  // 3. CAMPAIGN VELOCITY
-  // -----------------------------
-  let velocityLabel: BrandInsight;
+  const totalMatches = safeMatches.length;
 
-  if (metrics.activeCampaigns >= 3) {
-    velocityLabel = {
-      label: "🚀 High campaign velocity",
-      score: metrics.activeCampaigns,
-      tone: "positive",
-    };
-  } else if (metrics.activeCampaigns === 2) {
-    velocityLabel = {
-      label: "📊 Steady campaign activity",
-      score: metrics.activeCampaigns,
-      tone: "neutral",
-    };
-  } else {
-    velocityLabel = {
-      label: "🧊 Low campaign activity",
-      score: metrics.activeCampaigns,
-      tone: "warning",
-    };
-  }
+  const avgScore =
+    totalMatches === 0
+      ? 0
+      : safeMatches.reduce((acc, m) => acc + (m.score ?? 0), 0) /
+        totalMatches;
+
+  const demandScore = targetBrand
+    ? (targetBrand.demandScore ?? 0) + totalMatches * 3
+    : totalMatches * 2;
 
   return {
-    demandLabel,
-    competitionLabel,
-    velocityLabel,
+    brandId: normalizedId,
+    totalMatches,
+    avgScore: Math.round(avgScore),
+    demandScore: Math.round(demandScore),
+    topMatches: safeMatches.slice(0, 5),
   };
 }

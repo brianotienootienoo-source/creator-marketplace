@@ -6,13 +6,26 @@ export type CreatorPlatform =
   | "X"
   | "LinkedIn";
 
+export type CreatorType =
+  | "influencer"
+  | "musician"
+  | "comedian"
+  | "dj"
+  | "speaker"
+  | "hybrid";
+
+export type OpportunityMode =
+  | "brand_deals"
+  | "bookings"
+  | "sponsorships"
+  | "live_performance";
+
 export interface CreatorStats {
   followers: number;
 
   /**
-   * IMPORTANT:
    * Normalized expectation:
-   * - system may ingest 0–1 OR 0–100
+   * - can be 0–1 OR 0–100 depending on ingestion layer
    * - feed layer is responsible for normalization
    */
   engagementRate: number;
@@ -35,6 +48,21 @@ export interface CreatorPortfolioItem {
   url?: string;
 }
 
+/**
+ * BOOKING LAYER (FOR DJs, MUSICIANS, LIVE PERFORMERS)
+ */
+export interface CreatorBooking {
+  eventTypes: Array<
+    "wedding" | "club" | "corporate" | "festival" | "private_party"
+  >;
+
+  locationRadiusKm?: number;
+
+  baseFee?: number;
+
+  availability?: "available" | "busy" | "on_tour";
+}
+
 export interface Creator {
   /**
    * SYSTEM ID (PRIMARY KEY)
@@ -42,62 +70,83 @@ export interface Creator {
   id: string;
 
   /**
-   * URL + SEO identity (future routing layer)
+   * URL + SEO identity
    */
   slug: string;
 
   /**
-   * DISPLAY NAME (UI primary label)
+   * DISPLAY NAME
    */
   displayName: string;
 
   /**
-   * HANDLE (MUST be used as @username in UI)
-   * Example: alexvisuals
+   * HANDLE (used as @username)
    */
   username: string;
 
-  /**
-   * BIO (profile description)
-   */
   bio: string;
 
-  /**
-   * CONTENT NICHE (used in discovery + filtering)
-   */
   niche: string;
-
   tags: string[];
 
+  /**
+   * CREATOR CLASSIFICATION LAYER
+   */
+  creatorTypes: CreatorType[];
+
+  /**
+   * HOW THEY MAKE MONEY
+   */
+  opportunityModes: OpportunityMode[];
+
   platforms: CreatorPlatform[];
+
   verified: boolean;
 
   /**
-   * PRIMARY VISUALS
+   * VISUALS
    */
   avatar: string;
-
-  /**
-   * OPTIONAL FIELD
-   * BUT NOW CONSUMERS MUST ASSUME IT ALWAYS EXISTS
-   * (enforced via creatorUniverse fallback)
-   */
   bannerImage?: string;
 
+  /**
+   * REACH LAYER
+   */
   stats: CreatorStats;
 
   /**
-   * Unified rating input for CreatorCard + feed system
-   * (7.8 rating system contract)
+   * PLATFORM-SPECIFIC FOLLOWER BREAKDOWN
+   */
+  platformFollowers?: {
+    youtube?: number;
+    tiktok?: number;
+    instagram?: number;
+    twitch?: number;
+    x?: number;
+  };
+
+  /**
+   * INTELLIGENCE / RANKING
    */
   ratingScore: number;
 
+  /**
+   * AUDIENCE LAYER
+   */
   audience: CreatorAudience;
 
+  /**
+   * PROOF LAYER
+   */
   portfolio: CreatorPortfolioItem[];
 
   /**
-   * Feed system outputs (do not manually set in UI)
+   * BOOKING / PERFORMANCE LAYER
+   */
+  booking?: CreatorBooking;
+
+  /**
+   * FEED-DRIVEN SIGNALS (DO NOT MANUALLY SET IN UI)
    */
   matchScore?: number;
   trendScore?: number;

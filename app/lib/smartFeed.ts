@@ -1,4 +1,4 @@
-import { creators } from "@/app/data/creators";
+import { getCreatorUniverse } from "@/app/lib/creatorUniverse";
 import {
   getTrendingCategories,
   getBrandOpportunities,
@@ -7,7 +7,7 @@ import {
 import type { SmartFeed } from "./feedSchema";
 
 /* -----------------------------
-   SAFE HELPERS (ANTI-CRASH)
+   SAFE HELPERS
 ------------------------------*/
 const safeArray = <T,>(input: T[] | undefined | null): T[] => {
   return Array.isArray(input) ? input : [];
@@ -17,7 +17,11 @@ const safeArray = <T,>(input: T[] | undefined | null): T[] => {
    SCORING SYSTEM (STABLE)
 ------------------------------*/
 function scoreCreator(c: any) {
-  return (c?.followers ?? 0) + Math.random() * 1000;
+  return (
+    (c?.followers ?? 0) +
+    (c?.engagementRate ?? 0) * 1000 +
+    Math.random() * 500
+  );
 }
 
 function scoreBrand(b: any) {
@@ -25,13 +29,13 @@ function scoreBrand(b: any) {
 }
 
 /* -----------------------------
-   MARKET SNAPSHOT (GUARANTEED)
+   MARKET SNAPSHOT
 ------------------------------*/
 function buildMarket(): SmartFeed["market"] {
   return [
     {
       title: "Trending Niches",
-      subtitle: "Fashion, Music, Comedy",
+      subtitle: "Fashion, Music, Comedy, DJs",
     },
     {
       title: "Active Campaigns",
@@ -41,16 +45,16 @@ function buildMarket(): SmartFeed["market"] {
 }
 
 /* -----------------------------
-   MAIN SMART FEED (HARD LOCK)
+   MAIN SMART FEED
 ------------------------------*/
 export function buildSmartFeed(): SmartFeed {
-  // ALWAYS SAFE INPUTS
-  const rawCreators = safeArray(creators);
+  const creators = getCreatorUniverse();
+
   const rawCategories = safeArray(getTrendingCategories());
   const rawBrands = safeArray(getBrandOpportunities());
 
   // SORTED CREATORS
-  const creatorsSorted = rawCreators
+  const creatorsSorted = creators
     .map((c) => ({
       ...c,
       score: scoreCreator(c),
@@ -65,7 +69,6 @@ export function buildSmartFeed(): SmartFeed {
     }))
     .sort((a, b) => b.score - a.score);
 
-  // FINAL GUARANTEED RETURN (NO EXCEPTIONS)
   return {
     creators: creatorsSorted,
     brands: brandsSorted,
