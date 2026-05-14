@@ -68,17 +68,30 @@ function normalizeBrandScore(demandScore: number) {
 }
 
 /* -----------------------------
+   CREATOR ADAPTER (UNIVERSE SAFE LAYER)
+------------------------------*/
+function mapCreator(c: any) {
+  return {
+    id: c.id,
+    name: c.name ?? c.displayName ?? c.username,
+    category: c.category ?? c.niche ?? "Creator",
+    avatar: c.avatar ?? "",
+    score: c.score ?? c.ratingScore ?? 0,
+    trend: c.trend,
+    trendColor: c.trendColor,
+  };
+}
+
+/* -----------------------------
    MAIN FEED
 ------------------------------*/
 export function buildFeedV2(): FeedItem[] {
   const seed = getSeed();
 
-  const creators = getCreatorUniverse();
+  const creators = getCreatorUniverse().map(mapCreator);
 
-  // 🔒 CONTRACT LOCK
   const brands: BrandContract[] = getBrandUniverse();
 
-  // 🔒 CONTRACT LOCK
   const matches: BrandMatchContract[] = buildMatches();
 
   const feed: FeedItem[] = [];

@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { campaigns } from "@/app/data/campaigns";
-import { creators as legacyCreators } from "@/app/data/creators";
-import { adaptLegacyCreators } from "@/app/lib/marketplace/adapters/legacyCreatorsAdapter";
+import { getBrandCreatorView } from "@/app/lib/marketplace/views/brandCreatorView";
+import { BrandIntelligencePanel } from "./components/BrandIntelligencePanel";
 
 type Proposal = {
   id: string;
@@ -34,16 +34,11 @@ export default function BrandDashboard() {
       const data = await res.json();
       const all: Proposal[] = data?.proposals || [];
 
-      const creators = adaptLegacyCreators(legacyCreators);
-
       const filtered = all.filter(
         (p) => normalize(p.brandId) === brandId
       );
 
       const enriched = filtered.map((p) => {
-        // -------------------------
-        // CAMPAIGN ENRICHMENT
-        // -------------------------
         const campaign =
           campaigns.find((c) => c.id === p.campaignId) ||
           campaigns.find(
@@ -55,27 +50,41 @@ export default function BrandDashboard() {
               normalize(c.title) === normalize(p.campaignId || "")
           );
 
-        // -------------------------
-        // CREATOR ENRICHMENT (MIGRATED)
-        // -------------------------
-        const creator = creators.find(
-          (c) =>
-            normalize(c.id) === normalize(p.creatorId) ||
-            normalize(c.slug) === normalize(p.creatorId)
-        );
+        const brandCreator = getBrandCreatorView(p.creatorId);
+
+        // -----------------------------
+        // SAFE INTELLIGENCE INPUT LAYER
+        // (no UI interpretation here)
+        // -----------------------------
+
+        const matchScore =
+          brandCreator?.brandInsights?.fitScore ?? 0;
+
+        const trendScore =
+          brandCreator?.brandInsights?.audienceMatch ?? 0;
+
+        const rating =
+          brandCreator?.quickStats?.rating ?? 0;
 
         return {
           ...p,
 
           campaignTitle:
             campaign?.title || p.campaignId || "Campaign Pending",
+
           campaignBudget: campaign?.budget || "TBD",
 
-          // MIGRATED CREATOR DISPLAY
           creatorName:
-            creator?.displayName ||
-            creator?.username ||
+            brandCreator?.profile?.displayName ||
+            brandCreator?.profile?.username ||
             p.creatorId,
+
+          // -----------------------------
+          // INTELLIGENCE (RAW SIGNALS ONLY)
+          // -----------------------------
+          matchScore,
+          trendScore,
+          rating,
         };
       });
 
@@ -93,7 +102,6 @@ export default function BrandDashboard() {
 
   return (
     <main style={{ padding: 40, fontFamily: "sans-serif" }}>
-
       <section style={{ marginBottom: 30 }}>
         <h1 style={{ fontSize: 28, fontWeight: 700 }}>
           Brand Dashboard
@@ -133,9 +141,16 @@ export default function BrandDashboard() {
 
                 <hr style={{ margin: "10px 0" }} />
 
-                <p style={{ fontWeight: 600 }}>
+                <p style={{ fontWeight: 700 }}>
                   Creator: {p.creatorName}
                 </p>
+
+                {/* SAFE INTELLIGENCE PANEL */}
+                <BrandIntelligencePanel
+                  matchScore={p.matchScore ?? 0}
+                  trendScore={p.trendScore ?? 0}
+                  rating={p.rating ?? 0}
+                />
 
                 <p style={{ marginTop: 6 }}>{p.message}</p>
 

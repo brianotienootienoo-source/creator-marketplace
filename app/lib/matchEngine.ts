@@ -18,31 +18,19 @@ export function getMatches(brandId?: string) {
 
   return creators
     .map((creator) => {
-      let score = creator?.score ?? creator?.stats?.followers ?? 0;
+      // 🔒 SINGLE SOURCE OF SCORING (FROM UNIVERSE ONLY)
+      let score = creator.matchScore ?? 0;
 
       if (targetBrand) {
-        const creatorCategory =
-          creator.category?.toLowerCase?.();
+        // lightweight contextual boost only (NOT intelligence logic)
 
-        const brandCategory =
-          targetBrand.category?.toLowerCase?.();
-
-        if (
-          creatorCategory &&
-          brandCategory &&
-          creatorCategory === brandCategory
-        ) {
-          score += 15;
-        }
-
-        // 🔒 safe engagement boost (no crash if undefined)
         try {
           score += getEngagementBoost(
             targetBrand.id,
             creator.id
           ) ?? 0;
         } catch {
-          // fail silently (engine must NEVER crash feed)
+          // engine must never fail
         }
       }
 
@@ -53,9 +41,12 @@ export function getMatches(brandId?: string) {
         avatar: creator.avatar,
         followers: creator.followers,
         score: Math.round(score),
+
+        // optional signals (already computed upstream)
         trend: creator.trend,
         trendColor: creator.trendColor,
-        reason: "brand-contract-lock",
+
+        reason: "universe-driven-match",
       };
     })
     .sort((a, b) => b.score - a.score);
