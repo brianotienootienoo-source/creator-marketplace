@@ -28,8 +28,7 @@ export default async function CreatorProfilePage({
   }
 
   /**
-   * 🧠 SINGLE SOURCE OF TRUTH INTELLIGENCE
-   * Everything (profile, brand, campaigns, readiness) flows from here
+   * 🧠 UNIFIED INTELLIGENCE LAYER (SINGLE SOURCE OF TRUTH)
    */
   const intelligence = getUnifiedIntelligenceSync(creator);
 
@@ -43,14 +42,18 @@ export default async function CreatorProfilePage({
   return (
     <div className="max-w-4xl mx-auto pb-10">
 
+      {/* ===================== */}
       {/* HERO */}
+      {/* ===================== */}
       <CreatorHero
         bannerSrc={bannerSrc}
         avatarSrc={avatarSrc}
         name={creator.name}
       />
 
+      {/* ===================== */}
       {/* IDENTITY */}
+      {/* ===================== */}
       <CreatorIdentity
         name={creator.name}
         username={creator.username}
@@ -58,12 +61,118 @@ export default async function CreatorProfilePage({
         niche={creator.niche}
       />
 
+      {/* ===================== */}
       {/* STATS */}
+      {/* ===================== */}
       <CreatorStats
         niche={creator.niche}
         followers={creator.metrics?.followers || 0}
         engagement={creator.metrics?.engagement || 0}
       />
+
+      {/* ===================== */}
+      {/* QUICK METRICS STRIP */}
+      {/* ===================== */}
+      <div
+        style={{
+          marginTop: 12,
+          display: "flex",
+          justifyContent: "space-between",
+          padding: 12,
+          border: "1px solid #eee",
+          borderRadius: 10,
+          background: "#fafafa",
+          fontSize: 12,
+        }}
+      >
+        <span>
+          Followers: {creator.metrics?.followers?.toLocaleString?.() ?? 0}
+        </span>
+
+        <span>
+          Engagement: {creator.metrics?.engagement ?? 0}%
+        </span>
+
+        <span>
+          Brand Score: {creator.ratingScore ?? 0}
+        </span>
+
+        <span>
+          Platforms: {creator.platformFollowers
+            ? Object.keys(creator.platformFollowers).length
+            : 0}
+        </span>
+      </div>
+
+      {/* ===================== */}
+      {/* PLATFORM REACH */}
+      {/* ===================== */}
+      <div
+        style={{
+          marginTop: 16,
+          padding: 12,
+          border: "1px solid #eee",
+          borderRadius: 10,
+          background: "#fff",
+          fontSize: 12,
+        }}
+      >
+        <p style={{ fontWeight: 700, marginBottom: 8 }}>
+          Platform Reach
+        </p>
+
+        <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+          {creator.platformFollowers?.youtube && (
+            <span>YouTube: {creator.platformFollowers.youtube.toLocaleString()}</span>
+          )}
+
+          {creator.platformFollowers?.tiktok && (
+            <span>TikTok: {creator.platformFollowers.tiktok.toLocaleString()}</span>
+          )}
+
+          {creator.platformFollowers?.instagram && (
+            <span>Instagram: {creator.platformFollowers.instagram.toLocaleString()}</span>
+          )}
+
+          {creator.platformFollowers?.twitch && (
+            <span>Twitch: {creator.platformFollowers.twitch.toLocaleString()}</span>
+          )}
+
+          {creator.platformFollowers?.x && (
+            <span>X: {creator.platformFollowers.x.toLocaleString()}</span>
+          )}
+        </div>
+      </div>
+
+      {/* ===================== */}
+      {/* AUDIENCE SNAPSHOT */}
+      {/* ===================== */}
+      <div
+        style={{
+          marginTop: 16,
+          padding: 12,
+          border: "1px solid #eee",
+          borderRadius: 10,
+          background: "#fafafa",
+          fontSize: 12,
+        }}
+      >
+        <p style={{ fontWeight: 700, marginBottom: 8 }}>
+          Audience Snapshot
+        </p>
+
+        <p>
+          Age Range: {creator.audience?.primaryAgeRange ?? "N/A"}
+        </p>
+
+        <p>
+          Locations: {creator.audience?.topLocations?.join(", ") ?? "N/A"}
+        </p>
+
+        <p>
+          Interests: {creator.audience?.interests?.join(", ") ?? "N/A"}
+        </p>
+      </div>
 
       {/* ===================== */}
       {/* INTELLIGENCE PANEL */}
@@ -105,17 +214,13 @@ export default async function CreatorProfilePage({
             : "weak"
         }
       >
-        <p style={{ fontSize: 13, color: "#666" }}>
+        <p>
           Tier: <strong>{intelligence.readiness.tier}</strong>
         </p>
 
-        <p style={{ fontSize: 13, color: "#666" }}>
-          Score: {intelligence.readiness.score}
-        </p>
+        <p>Score: {intelligence.readiness.score}</p>
 
-        <p style={{ fontSize: 13, color: "#666" }}>
-          Best Fit: {intelligence.readiness.bestFit}
-        </p>
+        <p>Best Fit: {intelligence.readiness.bestFit}</p>
       </ProfileCard>
 
       {/* ===================== */}
@@ -140,6 +245,80 @@ export default async function CreatorProfilePage({
           ))
         )}
       </ProfileCard>
+
+      {/* ===================== */}
+      {/* PORTFOLIO GRID */}
+      {/* ===================== */}
+      <div style={{ marginTop: 16 }}>
+        <p style={{ fontWeight: 700, marginBottom: 10 }}>
+          Portfolio
+        </p>
+
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(2, 1fr)",
+            gap: 10,
+          }}
+        >
+          {(creator.portfolio ?? []).map((item) => (
+            <div
+              key={item.id}
+              style={{
+                border: "1px solid #eee",
+                borderRadius: 10,
+                padding: 10,
+                background: "#fff",
+              }}
+            >
+              <img
+                src={item.thumbnail}
+                style={{
+                  width: "100%",
+                  borderRadius: 8,
+                  marginBottom: 8,
+                }}
+              />
+
+              <p style={{ fontWeight: 600, fontSize: 12 }}>
+                {item.title}
+              </p>
+
+              <p style={{ fontSize: 11, color: "#777" }}>
+                {item.platform}
+              </p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* ===================== */}
+      {/* CTA LAYER */}
+      {/* ===================== */}
+      <div
+        style={{
+          marginTop: 24,
+          padding: 16,
+          border: "1px solid #eee",
+          borderRadius: 10,
+          background: "#fafafa",
+          display: "flex",
+          gap: 10,
+          justifyContent: "space-between",
+        }}
+      >
+        <button style={{ padding: 10, border: "1px solid #ccc", borderRadius: 8 }}>
+          Invite Creator
+        </button>
+
+        <button style={{ padding: 10, border: "1px solid #ccc", borderRadius: 8 }}>
+          Send Campaign
+        </button>
+
+        <button style={{ padding: 10, border: "1px solid #ccc", borderRadius: 8 }}>
+          Save Profile
+        </button>
+      </div>
 
     </div>
   );

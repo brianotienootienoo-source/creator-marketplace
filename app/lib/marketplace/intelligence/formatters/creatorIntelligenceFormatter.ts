@@ -4,13 +4,20 @@ import { getCampaignMatches } from "@/app/lib/marketplace/intelligence/campaignM
 import { Creator } from "@/app/lib/marketplace/entities/creator";
 
 /**
- * 🧠 SINGLE SOURCE INTELLIGENCE FORMATTER (21B CORE)
+ * 🧠 INTERNAL CREATOR INTELLIGENCE ENGINE
  *
- * This is the ONLY place where creator intelligence is interpreted
- * for UI consumption across:
- * - Creator Profile
- * - Brand Dashboard
- * - Feed (future)
+ * ⚠️ INTERNAL ENGINE ONLY
+ * DO NOT IMPORT IN:
+ * - UI components
+ * - page.tsx files
+ * - dashboard layers
+ *
+ * ONLY:
+ * - brandIntelligenceSync
+ * should consume this engine.
+ *
+ * PURPOSE:
+ * Central creator intelligence aggregation engine.
  */
 
 export function getCreatorIntelligence(creator: Creator) {

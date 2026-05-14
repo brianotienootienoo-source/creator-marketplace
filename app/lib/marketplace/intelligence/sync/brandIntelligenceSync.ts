@@ -2,11 +2,22 @@ import { Creator } from "@/app/lib/marketplace/entities/creator";
 import { getCreatorIntelligence } from "../formatters/creatorIntelligenceFormatter";
 
 /**
- * 🧠 BRAND INTELLIGENCE SYNC LAYER (22C CORE)
+ * 🧠 BRAND INTELLIGENCE SYNC LAYER (24D HARDENED)
  *
- * This is the FINAL normalization layer for ALL brand-facing intelligence.
- * Everything brand UI uses must pass through here.
+ * INTERNAL SERVER-ONLY INTELLIGENCE CORE
+ *
+ * RULES:
+ * - NOT for direct UI usage
+ * - NOT for client imports
+ * - ONLY accessed through:
+ *   getUnifiedIntelligenceSync()
  */
+
+if (typeof window !== "undefined") {
+  throw new Error(
+    "brandIntelligenceSync is server-internal only. Use getUnifiedIntelligenceSync instead."
+  );
+}
 
 export function getBrandIntelligenceSync(creator: Creator) {
   const intel = getCreatorIntelligence(creator);
