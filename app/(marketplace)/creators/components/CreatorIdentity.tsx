@@ -11,11 +11,18 @@ export function CreatorIdentity({
 }) {
   return (
     <div className="pt-14 px-4">
-      <h1 className="text-2xl font-bold">{name}</h1>
+      {/* Name */}
+      <h1 className="text-2xl font-semibold tracking-tight text-gray-900">
+        {name}
+      </h1>
 
-      <p className="text-gray-500 text-sm">@{username}</p>
+      {/* Username */}
+      <p className="text-sm text-gray-500 mt-1">
+        @{username}
+      </p>
 
-      <p className="mt-3 text-gray-600 leading-relaxed">
+      {/* Bio */}
+      <p className="mt-3 text-sm text-gray-700 leading-relaxed max-w-xl">
         {bio || `Content creator in the ${niche} space.`}
       </p>
     </div>

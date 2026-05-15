@@ -36,11 +36,20 @@ export function ProfileCard({
         transition: "all 0.2s ease",
       }}
     >
-      <h3 style={{ fontWeight: 700, marginBottom: 10 }}>
+      <h3
+        style={{
+          fontWeight: 600,
+          marginBottom: 10,
+          fontSize: 14,
+          letterSpacing: "-0.01em",
+        }}
+      >
         {title}
       </h3>
 
-      {children}
+      <div style={{ fontSize: 14, lineHeight: 1.5 }}>
+        {children}
+      </div>
     </div>
   );
 }
