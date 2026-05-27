@@ -16,10 +16,7 @@ interface OrchestratorInput {
 
 /**
  * 🧠 25A MARKETPLACE ORCHESTRATOR
- *
- * This is the ONLY decision layer above feeds.
- * It does NOT compute ranking.
- * It ONLY chooses which system is authoritative.
+ * Single decision layer for feed source selection
  */
 export function getMarketplaceFeed(input: OrchestratorInput) {
   const mode =
@@ -28,20 +25,16 @@ export function getMarketplaceFeed(input: OrchestratorInput) {
       pathname: input.pathname,
     });
 
-  /**
-   * 🔍 DEBUG TRACE (25A VISIBILITY LAYER)
-   * Helps confirm routing + engine selection before 25A-B streams
-   */
-  console.log("[25A ORCHESTRATOR]", {
-    pathname: input.pathname,
-    brandId: input.brandId,
-    mode,
-  });
+  if (process.env.NODE_ENV === "development") {
+    console.log("[25A ORCHESTRATOR]", {
+      pathname: input.pathname,
+      brandId: input.brandId,
+      mode,
+    });
+  }
 
   /**
-   * --------------------------------------
-   * 1. PREMIUM / BRAND SAFE MODE
-   * --------------------------------------
+   * 1. PREMIUM_STABLE → deterministic brand-safe feed
    */
   if (mode === "PREMIUM_STABLE") {
     const feed = getFeed(input.brandId);
@@ -54,9 +47,7 @@ export function getMarketplaceFeed(input: OrchestratorInput) {
   }
 
   /**
-   * --------------------------------------
-   * 2. ENGAGEMENT HEAVY MODE
-   * --------------------------------------
+   * 2. ENGAGEMENT_HEAVY → filter low scoring creators
    */
   if (mode === "ENGAGEMENT_HEAVY") {
     const feed = buildFeedV2();
@@ -76,9 +67,7 @@ export function getMarketplaceFeed(input: OrchestratorInput) {
   }
 
   /**
-   * --------------------------------------
-   * 3. TREND HEAVY MODE
-   * --------------------------------------
+   * 3. TREND_HEAVY → boost trending creators
    */
   if (mode === "TREND_HEAVY") {
     const feed = buildFeedV2();
@@ -100,12 +89,10 @@ export function getMarketplaceFeed(input: OrchestratorInput) {
   }
 
   /**
-   * --------------------------------------
-   * 4. DISCOVERY MODE (DEFAULT)
-   * --------------------------------------
+   * 4. DISCOVERY (default)
    */
   return {
-    mode,
+    mode: "DISCOVERY_HEAVY",
     source: "feedV2:default",
     data: buildFeedV2(),
   };

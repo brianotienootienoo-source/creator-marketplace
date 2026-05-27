@@ -8,9 +8,11 @@ export async function GET(req: Request) {
     const brandId = searchParams.get("brandId") || undefined;
 
     const modeParam = searchParams.get("mode");
-    const forceMode = modeParam && modeParam !== "AUTO"
-      ? (modeParam as any)
-      : undefined;
+    const forceMode =
+      modeParam &&
+      modeParam !== "AUTO"
+        ? (modeParam as any)
+        : undefined;
 
     const limit = Math.min(
       Math.max(Number(searchParams.get("limit") || 10), 1),
@@ -19,27 +21,18 @@ export async function GET(req: Request) {
 
     const cursor = Number(searchParams.get("cursor") || 0);
 
-    /**
-     * 🧠 ORCHESTRATOR CALL (25A CONTROLLED)
-     */
     const result = getMarketplaceFeed({
       pathname: "/",
       brandId,
       forceMode,
     });
 
-    /**
-     * 🔒 SAFE FEED EXTRACTION
-     */
     const safeFeed = Array.isArray(result?.data)
       ? result.data
       : [];
 
     const slice = safeFeed.slice(cursor, cursor + limit);
 
-    /**
-     * 📦 RESPONSE
-     */
     return NextResponse.json({
       success: true,
       data: slice,

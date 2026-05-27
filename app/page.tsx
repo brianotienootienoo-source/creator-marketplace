@@ -24,9 +24,6 @@ export default function Home() {
   const [hydrated, setHydrated] = useState(false);
   const [debug, setDebug] = useState<any>(null);
 
-  /* -----------------------------
-     LOAD FEED (25A ORCHESTRATED)
-  ------------------------------*/
   useEffect(() => {
     async function load() {
       try {
@@ -49,9 +46,6 @@ export default function Home() {
     setHydrated(true);
   }, []);
 
-  /* -----------------------------
-     STREAM LAYER (UNCHANGED)
-  ------------------------------*/
   const streams = useMemo(() => routeFeedStreams(feed), [feed]);
 
   const mode = useMemo(() => {
@@ -66,7 +60,6 @@ export default function Home() {
 
   return (
     <main style={{ padding: 40, fontFamily: "sans-serif" }}>
-      {/* HERO */}
       <section style={{ marginBottom: 40 }}>
         <h1 style={{ fontSize: 32, fontWeight: 700 }}>
           Creator–Brand Marketplace
@@ -80,7 +73,6 @@ export default function Home() {
           Stream mode: {mode}
         </p>
 
-        {/* 🔍 25A DEBUG VISIBILITY */}
         {debug && (
           <p style={{ fontSize: 11, color: "#888", marginTop: 6 }}>
             Orchestrator → mode: {debug.mode} | source: {debug.source}
@@ -92,14 +84,7 @@ export default function Home() {
       <section style={{ marginBottom: 40 }}>
         <h2>Brand Signals</h2>
 
-        <div
-          style={{
-            display: "flex",
-            gap: 12,
-            overflowX: "auto",
-            marginTop: 10,
-          }}
-        >
+        <div style={{ display: "flex", gap: 12, overflowX: "auto", marginTop: 10 }}>
           {brands.length === 0 ? (
             <p style={{ color: "#999" }}>No brand signals available</p>
           ) : (
