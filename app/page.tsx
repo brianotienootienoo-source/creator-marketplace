@@ -4,7 +4,6 @@ import { useEffect, useMemo, useState } from "react";
 import MarketplaceCard from "@/app/components/ui/MarketplaceCard";
 import CreatorCard from "@/app/components/ui/CreatorCard";
 import { campaigns } from "@/app/data/campaigns";
-import { buildFeedV2 } from "@/app/lib/feedV2";
 import ViewAllButton from "@/app/components/ui/ViewAllButton";
 
 import { routeFeedStreams } from "@/app/lib/streams/streamRouter";
@@ -23,24 +22,36 @@ type FeedItem = {
 export default function Home() {
   const [feed, setFeed] = useState<FeedItem[]>([]);
   const [hydrated, setHydrated] = useState(false);
+  const [debug, setDebug] = useState<any>(null);
 
   /* -----------------------------
-     LOAD FEED
+     LOAD FEED (25A ORCHESTRATED)
   ------------------------------*/
   useEffect(() => {
-    try {
-      const raw = buildFeedV2();
-      setFeed(Array.isArray(raw) ? raw : []);
-    } catch (err) {
-      console.error("Feed load failed:", err);
-      setFeed([]);
+    async function load() {
+      try {
+        const res = await fetch("/api/feed?limit=50");
+        const json = await res.json();
+
+        setFeed(Array.isArray(json?.data) ? json.data : []);
+        setDebug(json?.meta ?? null);
+      } catch (err) {
+        console.error("Feed load failed:", err);
+        setFeed([]);
+        setDebug(null);
+      }
     }
+
+    load();
   }, []);
 
   useEffect(() => {
     setHydrated(true);
   }, []);
 
+  /* -----------------------------
+     STREAM LAYER (UNCHANGED)
+  ------------------------------*/
   const streams = useMemo(() => routeFeedStreams(feed), [feed]);
 
   const mode = useMemo(() => {
@@ -68,13 +79,27 @@ export default function Home() {
         <p style={{ fontSize: 12, color: "#999", marginTop: 6 }}>
           Stream mode: {mode}
         </p>
+
+        {/* 🔍 25A DEBUG VISIBILITY */}
+        {debug && (
+          <p style={{ fontSize: 11, color: "#888", marginTop: 6 }}>
+            Orchestrator → mode: {debug.mode} | source: {debug.source}
+          </p>
+        )}
       </section>
 
       {/* BRAND SIGNALS */}
       <section style={{ marginBottom: 40 }}>
         <h2>Brand Signals</h2>
 
-        <div style={{ display: "flex", gap: 12, overflowX: "auto", marginTop: 10 }}>
+        <div
+          style={{
+            display: "flex",
+            gap: 12,
+            overflowX: "auto",
+            marginTop: 10,
+          }}
+        >
           {brands.length === 0 ? (
             <p style={{ color: "#999" }}>No brand signals available</p>
           ) : (

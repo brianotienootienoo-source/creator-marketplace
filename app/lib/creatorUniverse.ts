@@ -3,16 +3,36 @@ import { getCreatorScore } from "@/app/lib/creatorIntelligence";
 import { getMomentumScore } from "@/app/lib/momentum";
 import { getTrendLabel } from "@/app/lib/trendLabel";
 
-// 🔥 SINGLE LEGACY ENTRY POINT ONLY (DO NOT USE ELSEWHERE)
 import { creators as legacyCreators } from "@/app/data/creators";
 
 /* -----------------------------
-   UNIFIED CREATOR DTO (SOURCE OF TRUTH)
+   SAFE ARRAY
+------------------------------*/
+function safeArray<T>(input: T[] | undefined | null): T[] {
+  return Array.isArray(input) ? input : [];
+}
+
+/* -----------------------------
+   UNIFIED CREATOR DTO
 ------------------------------*/
 export function getCreatorUniverse() {
-  const adaptedCreators = adaptLegacyCreators(legacyCreators);
+  const raw = safeArray(legacyCreators);
 
-  return adaptedCreators.map((c) => {
+  const adaptedCreators = safeArray(adaptLegacyCreators(raw));
+
+  if (process.env.NODE_ENV === "development") {
+    console.log("🧬 LEGACY:", raw.length);
+    console.log("🧬 ADAPTED:", adaptedCreators.length);
+  }
+
+  /**
+   * 🚨 HARD RULE:
+   * NEVER MIX RAW + ADAPTED
+   * ADAPTER IS SOURCE OF TRUTH
+   */
+  const source = adaptedCreators;
+
+  return source.map((c: any) => {
     const baseScore = getCreatorScore({
       id: c.id,
       name: c.displayName,
@@ -39,6 +59,7 @@ export function getCreatorUniverse() {
 
       followers: c.stats?.followers ?? 0,
       engagementRate: c.stats?.engagementRate ?? 0,
+
       pastBrandScore: c.ratingScore ?? 0,
 
       score,

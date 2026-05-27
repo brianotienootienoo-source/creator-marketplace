@@ -42,9 +42,7 @@ type FeedItem =
 let cachedSeed: number | null = null;
 
 function getSeed() {
-  if (!cachedSeed) {
-    cachedSeed = Date.now();
-  }
+  if (!cachedSeed) cachedSeed = Date.now();
   return cachedSeed;
 }
 
@@ -68,7 +66,7 @@ function normalizeBrandScore(demandScore: number) {
 }
 
 /* -----------------------------
-   CREATOR ADAPTER (UNIVERSE SAFE LAYER)
+   CREATOR ADAPTER
 ------------------------------*/
 function mapCreator(c: any) {
   return {
@@ -89,10 +87,19 @@ export function buildFeedV2(): FeedItem[] {
   const seed = getSeed();
 
   const creators = getCreatorUniverse().map(mapCreator);
-
   const brands: BrandContract[] = getBrandUniverse();
-
   const matches: BrandMatchContract[] = buildMatches();
+
+  /**
+   * 🧪 SAFE DIAGNOSTIC (DO NOT REMOVE YET)
+   */
+  if (process.env.NODE_ENV === "development") {
+    console.log("🧠 FEED DEBUG", {
+      creators: creators?.length ?? 0,
+      brands: brands?.length ?? 0,
+      matches: matches?.length ?? 0,
+    });
+  }
 
   const feed: FeedItem[] = [];
 
@@ -106,9 +113,7 @@ export function buildFeedV2(): FeedItem[] {
       name: c.name,
       category: c.category ?? "Creator",
       avatar: c.avatar,
-      score:
-        normalizeCreatorScore(c.score ?? 0) +
-        jitter(seed, i) * 18,
+      score: normalizeCreatorScore(c.score ?? 0) + jitter(seed, i) * 18,
       trend: c.trend,
       trendColor: c.trendColor,
     }))
@@ -123,9 +128,7 @@ export function buildFeedV2(): FeedItem[] {
       id: b.id,
       name: b.name,
       subtitle: b.description ?? "Brand Opportunity",
-      score:
-        normalizeBrandScore(b.demandScore ?? 1) +
-        jitter(seed, i + 100) * 12,
+      score: normalizeBrandScore(b.demandScore ?? 1) + jitter(seed, i + 100) * 12,
     }))
   );
 
@@ -138,9 +141,7 @@ export function buildFeedV2(): FeedItem[] {
       id: m.id ?? `match-${i}`,
       name: m.name ?? "Match",
       subtitle: m.reason ?? "Creator Match",
-      score:
-        (m.score ?? 0) +
-        jitter(seed, i + 200) * 10,
+      score: (m.score ?? 0) + jitter(seed, i + 200) * 10,
     }))
   );
 

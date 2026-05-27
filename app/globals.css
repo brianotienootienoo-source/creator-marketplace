@@ -5,6 +5,7 @@
   --foreground: #171717;
 
   --font-sans: var(--font-inter);
+  --font-mono: var(--font-geist-mono);
 }
 
 html {
@@ -19,4 +20,32 @@ body {
   color: var(--foreground);
   font-family: var(--font-sans);
   margin: 0;
+
+  font-size: 16px;
+  line-height: 1.5;
+  font-weight: 400;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  margin: 0;
+  font-weight: 600;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+}
+
+p {
+  margin: 0;
+  line-height: 1.6;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
 }
