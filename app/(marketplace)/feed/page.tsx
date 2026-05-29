@@ -5,6 +5,8 @@ import CreatorSignalCard from "@/app/components/ui/CreatorSignalCard";
 import FeedModeSwitcher from "./components/FeedModeSwitcher";
 import Text from "@/app/components/ui/Text";
 
+import { getFeedVisualStyle } from "@/app/lib/marketplace/feed/feedVisualStyle";
+
 type Props = {
   searchParams?: {
     mode?: string;
@@ -22,6 +24,27 @@ export default function FeedPage({ searchParams }: Props) {
   const creators = result.data.filter((i: any) => i.type === "creator");
   const brands = result.data.filter((i: any) => i.type === "brand");
 
+  const visual = getFeedVisualStyle(result.mode as any);
+
+  function getCardEmphasis(mode: string, index: number) {
+    switch (mode) {
+      case "TREND_HEAVY":
+        return index < 3 ? 1.03 : 1;
+
+      case "ENGAGEMENT_HEAVY":
+        return index < 5 ? 1.01 : 1;
+
+      case "DISCOVERY_HEAVY":
+        return 1;
+
+      case "PREMIUM_STABLE":
+        return 1;
+
+      default:
+        return 1;
+    }
+  }
+
   return (
     <div
       style={{
@@ -33,7 +56,6 @@ export default function FeedPage({ searchParams }: Props) {
     >
       {/* HERO */}
       <div style={{ marginBottom: 18 }}>
-        {/* FIXED: match Creators page size (text-2xl equivalent) */}
         <Text size="2xl" weight={700}>
           Marketplace Feed
         </Text>
@@ -60,8 +82,7 @@ export default function FeedPage({ searchParams }: Props) {
         }}
       >
         <Text size="xs" muted>
-          Total Items: {result.data.length} | Creators: {creators.length} |
-          Brands: {brands.length}
+          Total Items: {result.data.length} | Creators: {creators.length} | Brands: {brands.length}
         </Text>
       </div>
 
@@ -75,44 +96,60 @@ export default function FeedPage({ searchParams }: Props) {
           style={{
             display: "grid",
             gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))",
-            gap: 14,
+            gap: visual.gap,
           }}
         >
-          {creators.map((item: any) => {
+          {creators.map((item: any, index: number) => {
+            const scale = getCardEmphasis(result.mode, index);
+
             if (item.intelligence) {
               return (
-                <CreatorSignalCard
+                <div
                   key={item.id}
-                  creator={{
-                    id: item.id,
-                    name: item.name,
-                    avatar: item.avatar,
-                    category: item.category,
+                  style={{
+                    transform: `scale(${scale})`,
+                    transition: "transform 0.2s ease",
                   }}
-                  intelligence={{
-                    matchScore: item.intelligence?.matchScore ?? 0,
-                    trendScore: item.intelligence?.trendScore ?? 0,
-                    ratingScore:
-                      item.intelligence?.ratingScore ?? item.score ?? 0,
-                    readinessTier: item.intelligence?.readinessTier ?? "C",
-                    reason: item.intelligence?.reason,
-                  }}
-                />
+                >
+                  <CreatorSignalCard
+                    creator={{
+                      id: item.id,
+                      name: item.name,
+                      avatar: item.avatar,
+                      category: item.category,
+                    }}
+                    intelligence={{
+                      matchScore: item.intelligence?.matchScore ?? 0,
+                      trendScore: item.intelligence?.trendScore ?? 0,
+                      ratingScore:
+                        item.intelligence?.ratingScore ?? item.score ?? 0,
+                      readinessTier: item.intelligence?.readinessTier ?? "C",
+                      reason: item.intelligence?.reason,
+                    }}
+                  />
+                </div>
               );
             }
 
             return (
-              <CreatorCard
+              <div
                 key={item.id}
-                creator={{
-                  id: item.id,
-                  name: item.name,
-                  category: item.category,
-                  avatar: item.avatar,
+                style={{
+                  transform: `scale(${scale})`,
+                  transition: "transform 0.2s ease",
                 }}
-                score={item.score}
-                compact
-              />
+              >
+                <CreatorCard
+                  creator={{
+                    id: item.id,
+                    name: item.name,
+                    category: item.category,
+                    avatar: item.avatar,
+                  }}
+                  score={item.score}
+                  compact
+                />
+              </div>
             );
           })}
         </div>
@@ -128,7 +165,7 @@ export default function FeedPage({ searchParams }: Props) {
           style={{
             display: "grid",
             gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))",
-            gap: 14,
+            gap: visual.gap,
           }}
         >
           {brands.map((item: any) => (
