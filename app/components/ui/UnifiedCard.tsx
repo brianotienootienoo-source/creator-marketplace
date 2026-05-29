@@ -25,7 +25,7 @@ export default function UnifiedCard({ children, onClick, compact }: Props) {
         borderRadius: cardSystem.radius,
 
         background: "#fff",
-        border: "1px solid rgba(0,0,0,0.06)",
+        border: cardSystem.border,
 
         boxShadow: cardSystem.shadow.idle,
 
@@ -36,16 +36,14 @@ export default function UnifiedCard({ children, onClick, compact }: Props) {
         cursor: onClick ? "pointer" : "default",
 
         transition: "transform 0.18s ease, box-shadow 0.18s ease",
-
-        transform: "translateY(0px) scale(1)",
       }}
       onMouseEnter={(e) => {
-        const el = e.currentTarget as HTMLDivElement;
+        const el = e.currentTarget;
         el.style.transform = `translateY(${cardSystem.motion.lift}px) scale(${cardSystem.motion.scale})`;
         el.style.boxShadow = cardSystem.shadow.hover;
       }}
       onMouseLeave={(e) => {
-        const el = e.currentTarget as HTMLDivElement;
+        const el = e.currentTarget;
         el.style.transform = "translateY(0px) scale(1)";
         el.style.boxShadow = cardSystem.shadow.idle;
       }}

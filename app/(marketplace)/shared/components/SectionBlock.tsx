@@ -1,39 +1,63 @@
+import {
+  layout,
+  radius,
+  spacing,
+  surfaces,
+  typography,
+} from "@/app/lib/designTokens";
+
 type Props = {
   title?: string;
+
   children: React.ReactNode;
+
   tone?: "neutral" | "soft" | "strong";
 };
 
-export function SectionBlock({ title, children, tone = "neutral" }: Props) {
+export function SectionBlock({
+  title,
+  children,
+  tone = "neutral",
+}: Props) {
   const toneStyles = {
-    neutral: "#fff",
-    soft: "#fafafa",
+    neutral: surfaces.card,
+    soft: surfaces.cardSoft,
     strong: "#f3f4f6",
   };
 
   return (
-    <div
+    <section
       style={{
-        marginTop: 16,
-        padding: 14,
-        border: "1px solid #eee",
-        borderRadius: 12,
+        marginTop: layout.blockGap,
+
+        padding: spacing.xl,
+
+        border: `1px solid ${surfaces.border}`,
+        borderRadius: radius.lg,
+
         background: toneStyles[tone],
+
+        boxShadow: surfaces.shadowSoft,
       }}
     >
       {title && (
-        <p
+        <div
           style={{
-            fontWeight: 700,
-            fontSize: 13,
-            marginBottom: 10,
+            marginBottom: spacing.lg,
           }}
         >
-          {title}
-        </p>
+          <h3
+            style={{
+              fontSize: typography.fontSize.lg,
+              fontWeight: typography.fontWeight.semibold,
+            }}
+          >
+            {title}
+          </h3>
+        </div>
       )}
 
       {children}
-    </div>
+    </section>
   );
 }

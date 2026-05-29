@@ -16,14 +16,11 @@ interface OrchestratorInput {
 
 /**
  * 🧠 25A MARKETPLACE ORCHESTRATOR
- * Single decision layer for feed source selection
  */
 export function getMarketplaceFeed(input: OrchestratorInput) {
   const mode =
     input.forceMode ??
-    getRouteFeedMode({
-      pathname: input.pathname,
-    });
+    getRouteFeedMode({ pathname: input.pathname });
 
   if (process.env.NODE_ENV === "development") {
     console.log("[25A ORCHESTRATOR]", {
@@ -34,57 +31,35 @@ export function getMarketplaceFeed(input: OrchestratorInput) {
   }
 
   /**
-   * 1. PREMIUM_STABLE → deterministic brand-safe feed
+   * 1. PREMIUM_STABLE → feedEngine only
    */
   if (mode === "PREMIUM_STABLE") {
-    const feed = getFeed(input.brandId);
-
     return {
       mode,
       source: "feedEngine",
-      data: feed,
+      data: getFeed(input.brandId),
     };
   }
 
   /**
-   * 2. ENGAGEMENT_HEAVY → filter low scoring creators
+   * 2. ENGAGEMENT_HEAVY → feedV2 filtered ONLY inside feedV2 (not here)
    */
   if (mode === "ENGAGEMENT_HEAVY") {
-    const feed = buildFeedV2();
-
-    const filtered = feed.filter((item) => {
-      if (item.type === "creator") {
-        return (item.score ?? 0) > 20;
-      }
-      return true;
-    });
-
     return {
       mode,
-      source: "feedV2:engagementFiltered",
-      data: filtered,
+      source: "feedV2:engagement",
+      data: buildFeedV2({ mode: "ENGAGEMENT_HEAVY" }),
     };
   }
 
   /**
-   * 3. TREND_HEAVY → boost trending creators
+   * 3. TREND_HEAVY → feedV2 sorted ONLY inside feedV2 (not here)
    */
   if (mode === "TREND_HEAVY") {
-    const feed = buildFeedV2();
-
-    const sorted = feed.sort((a, b) => {
-      const trendBoostA =
-        a.type === "creator" ? (a.trend === "up" ? 10 : 0) : 0;
-      const trendBoostB =
-        b.type === "creator" ? (b.trend === "up" ? 10 : 0) : 0;
-
-      return (b.score + trendBoostB) - (a.score + trendBoostA);
-    });
-
     return {
       mode,
-      source: "feedV2:trendSorted",
-      data: sorted,
+      source: "feedV2:trend",
+      data: buildFeedV2({ mode: "TREND_HEAVY" }),
     };
   }
 
@@ -94,6 +69,6 @@ export function getMarketplaceFeed(input: OrchestratorInput) {
   return {
     mode: "DISCOVERY_HEAVY",
     source: "feedV2:default",
-    data: buildFeedV2(),
+    data: buildFeedV2({ mode: "DISCOVERY_HEAVY" }),
   };
 }

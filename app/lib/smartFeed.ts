@@ -1,78 +1,22 @@
-import { getCreatorUniverse } from "@/app/lib/creatorUniverse";
-import {
-  getTrendingCategories,
-  getBrandOpportunities,
-} from "@/app/lib/feed";
+import { getFeedV2 } from "./feedV2";
 
-import type { SmartFeed } from "./feedSchema";
+/**
+ * 🧊 LEGACY SMART FEED (REDIRECTED)
+ *
+ * This file is now a compatibility wrapper only.
+ * All intelligence, ranking, and logic lives in feedV2.
+ *
+ * DO NOT add logic here.
+ * DO NOT modify scoring here.
+ * DO NOT extend this file.
+ */
 
-/* -----------------------------
-   SAFE HELPERS
-------------------------------*/
-const safeArray = <T,>(input: T[] | undefined | null): T[] => {
-  return Array.isArray(input) ? input : [];
-};
-
-/* -----------------------------
-   SCORING SYSTEM (STABLE)
-------------------------------*/
-function scoreCreator(c: any) {
-  return (
-    (c?.followers ?? 0) +
-    (c?.engagementRate ?? 0) * 1000 +
-    Math.random() * 500
-  );
+export function getSmartFeed(input?: any) {
+  return getFeedV2(input);
 }
 
-function scoreBrand(b: any) {
-  return (b?.demand ?? 0) * 10 + Math.random() * 50;
+export function smartFeed(input?: any) {
+  return getFeedV2(input);
 }
 
-/* -----------------------------
-   MARKET SNAPSHOT
-------------------------------*/
-function buildMarket(): SmartFeed["market"] {
-  return [
-    {
-      title: "Trending Niches",
-      subtitle: "Fashion, Music, Comedy, DJs",
-    },
-    {
-      title: "Active Campaigns",
-      subtitle: "12 live deals",
-    },
-  ];
-}
-
-/* -----------------------------
-   MAIN SMART FEED
-------------------------------*/
-export function buildSmartFeed(): SmartFeed {
-  const creators = getCreatorUniverse();
-
-  const rawCategories = safeArray(getTrendingCategories());
-  const rawBrands = safeArray(getBrandOpportunities());
-
-  // SORTED CREATORS
-  const creatorsSorted = creators
-    .map((c) => ({
-      ...c,
-      score: scoreCreator(c),
-    }))
-    .sort((a, b) => b.score - a.score);
-
-  // SORTED BRANDS
-  const brandsSorted = rawBrands
-    .map((b) => ({
-      ...b,
-      score: scoreBrand(b),
-    }))
-    .sort((a, b) => b.score - a.score);
-
-  return {
-    creators: creatorsSorted,
-    brands: brandsSorted,
-    categories: rawCategories,
-    market: buildMarket(),
-  };
-}
+export default getSmartFeed;

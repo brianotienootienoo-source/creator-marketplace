@@ -1,7 +1,9 @@
 export type DensityMode = "compact" | "default" | "expanded";
+export type ViewMode = "normal" | "signal";
 
 export const uiState = {
   density: "default" as DensityMode,
+  viewMode: "normal" as ViewMode,
 
   interaction: {
     hoverLift: -4,

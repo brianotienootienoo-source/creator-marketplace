@@ -3,6 +3,26 @@ import { getBrandUniverse } from "@/app/lib/brandUniverse";
 import { getCreatorScore } from "./creatorIntelligence";
 import { getEngagementBoost } from "./engagementMemory";
 
+/**
+ * 🧊 LEGACY FEED ENGINE (FROZEN)
+ *
+ * IMPORTANT ARCHITECTURE RULE:
+ * --------------------------------
+ * This module is now frozen.
+ *
+ * - DO NOT extend scoring logic here
+ * - DO NOT add new ranking rules here
+ * - DO NOT evolve business logic here
+ *
+ * ALL FUTURE DEVELOPMENT GOES TO:
+ *   feedV2.ts
+ *
+ * This file exists only for:
+ * - backward compatibility
+ * - orchestrator fallback mode
+ * - gradual migration safety
+ */
+
 type FeedItem =
   | {
       type: "creator";
@@ -22,6 +42,12 @@ type FeedItem =
       score: number;
     };
 
+/**
+ * 🧊 LEGACY ENTRY POINT (FROZEN LOGIC)
+ * ------------------------------------
+ * Kept for compatibility only.
+ * Future systems should NOT call this directly.
+ */
 export function getFeed(brandId?: string): FeedItem[] {
   const brands = getBrandUniverse();
   const targetBrand = brands.find((b) => b.id === brandId);
@@ -63,7 +89,7 @@ export function getFeed(brandId?: string): FeedItem[] {
       avatar: creator.avatar,
       followers: creator.followers,
       score: Math.round(score),
-      reason: "stable feed",
+      reason: "legacy feedEngine (frozen)",
     };
   });
 
@@ -76,4 +102,11 @@ export function getFeed(brandId?: string): FeedItem[] {
   }));
 
   return [...creatorFeed, ...brandFeed].sort((a, b) => b.score - a.score);
+}
+
+/**
+ * 🧊 LEGACY ALIAS (DO NOT USE FOR NEW DEVELOPMENT)
+ */
+export function feedEngine(brandId?: string): FeedItem[] {
+  return getFeed(brandId);
 }

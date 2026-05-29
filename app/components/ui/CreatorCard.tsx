@@ -22,17 +22,28 @@ type Props = {
 
   score: number;
   compact?: boolean;
+
+  // 🧠 NEW: optional signal layer (non-breaking)
+  signals?: {
+    matchScore?: number;
+    trendScore?: number;
+    rating?: number;
+  };
+
+  showSignals?: boolean;
 };
 
-export default function CreatorCard({ creator, score, compact }: Props) {
+export default function CreatorCard({
+  creator,
+  score,
+  compact,
+  signals,
+  showSignals = false,
+}: Props) {
   const label = getLabel(score);
   const stars = getStars(score);
   const insight = getCardInsightLabel(score);
 
-  /**
-   * FIXED ROUTING STRATEGY
-   * Prefer slug (your canonical system), fallback to id
-   */
   const href = creator.slug
     ? `/creators/${creator.slug}`
     : `/creators/${creator.id}`;
@@ -47,6 +58,7 @@ export default function CreatorCard({ creator, score, compact }: Props) {
       }}
     >
       <UnifiedCard compact={compact}>
+        {/* LEFT SIDE */}
         <div
           style={{
             display: "flex",
@@ -94,7 +106,6 @@ export default function CreatorCard({ creator, score, compact }: Props) {
               </span>
             )}
 
-            {/* LABEL (NO COLOR DRIFT) */}
             <span
               style={{
                 fontSize: 11,
@@ -106,20 +117,35 @@ export default function CreatorCard({ creator, score, compact }: Props) {
               {label}
             </span>
 
-            {/* INSIGHT */}
-            <span
-              style={{
-                fontSize: 10,
-                marginTop: 3,
-                color: "#888",
-              }}
-            >
+            <span style={{ fontSize: 10, marginTop: 3, color: "#888" }}>
               {insight}
             </span>
+
+            {/* 🧠 SIGNAL OVERLAY (OPTIONAL) */}
+            {showSignals && signals && (
+              <div
+                style={{
+                  marginTop: 6,
+                  display: "flex",
+                  gap: 6,
+                  flexWrap: "wrap",
+                }}
+              >
+                <span style={{ fontSize: 10, color: "#666" }}>
+                  M:{signals.matchScore ?? 0}
+                </span>
+                <span style={{ fontSize: 10, color: "#666" }}>
+                  T:{signals.trendScore ?? 0}
+                </span>
+                <span style={{ fontSize: 10, color: "#666" }}>
+                  R:{signals.rating ?? 0}
+                </span>
+              </div>
+            )}
           </div>
         </div>
 
-        {/* STARS (FIXED 5-SLOT DISPLAY) */}
+        {/* RIGHT SIDE */}
         <div
           style={{
             textAlign: "right",

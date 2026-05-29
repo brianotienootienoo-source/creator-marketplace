@@ -1,3 +1,10 @@
+import {
+  radius,
+  spacing,
+  surfaces,
+  typography,
+} from "@/app/lib/designTokens";
+
 type Props = {
   matchScore?: number;
   trendScore?: number;
@@ -14,12 +21,21 @@ function Chip({
   return (
     <span
       style={{
-        padding: "4px 8px",
-        borderRadius: 999,
-        border: "1px solid #eee",
-        background: "#fafafa",
-        fontSize: 12,
-        color: "#555",
+        padding: `${spacing.xs}px ${spacing.sm}px`,
+
+        borderRadius: radius.full,
+
+        border: `1px solid ${surfaces.border}`,
+
+        background: surfaces.cardSoft,
+
+        fontSize: typography.fontSize.sm,
+
+        color: surfaces.muted,
+
+        fontWeight: 500,
+
+        whiteSpace: "nowrap",
       }}
     >
       {label}: {value}
@@ -36,9 +52,9 @@ export function SignalLine({
     <div
       style={{
         display: "flex",
-        gap: 8,
+        gap: spacing.sm,
         flexWrap: "wrap",
-        marginTop: 8,
+        marginTop: spacing.sm,
       }}
     >
       <Chip label="Match" value={matchScore} />
