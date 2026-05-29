@@ -3,6 +3,8 @@
 import Link from "next/link";
 import UnifiedCard from "@/app/components/ui/UnifiedCard";
 
+import { workspaceTypography as t } from "@/app/lib/design/workspaceTypography";
+
 import {
   getStars,
   getLabel,
@@ -23,7 +25,6 @@ type Props = {
   score: number;
   compact?: boolean;
 
-  // 🧠 NEW: optional signal layer (non-breaking)
   signals?: {
     matchScore?: number;
     trendScore?: number;
@@ -58,7 +59,6 @@ export default function CreatorCard({
       }}
     >
       <UnifiedCard compact={compact}>
-        {/* LEFT SIDE */}
         <div
           style={{
             display: "flex",
@@ -89,9 +89,9 @@ export default function CreatorCard({
             }}
           >
             <h4
+              className={t.cardTitle}
               style={{
                 margin: 0,
-                fontSize: 13,
                 whiteSpace: "nowrap",
                 overflow: "hidden",
                 textOverflow: "ellipsis",
@@ -101,27 +101,22 @@ export default function CreatorCard({
             </h4>
 
             {creator.category && (
-              <span style={{ fontSize: 11, color: "#666" }}>
+              <span className={t.body}>
                 {creator.category}
               </span>
             )}
 
             <span
-              style={{
-                fontSize: 11,
-                marginTop: 2,
-                color: "#111",
-                fontWeight: 500,
-              }}
+              className={t.body}
+              style={{ marginTop: 2, fontWeight: 500 }}
             >
               {label}
             </span>
 
-            <span style={{ fontSize: 10, marginTop: 3, color: "#888" }}>
+            <span className={t.tiny} style={{ marginTop: 3 }}>
               {insight}
             </span>
 
-            {/* 🧠 SIGNAL OVERLAY (OPTIONAL) */}
             {showSignals && signals && (
               <div
                 style={{
@@ -131,13 +126,13 @@ export default function CreatorCard({
                   flexWrap: "wrap",
                 }}
               >
-                <span style={{ fontSize: 10, color: "#666" }}>
+                <span className={t.tiny}>
                   M:{signals.matchScore ?? 0}
                 </span>
-                <span style={{ fontSize: 10, color: "#666" }}>
+                <span className={t.tiny}>
                   T:{signals.trendScore ?? 0}
                 </span>
-                <span style={{ fontSize: 10, color: "#666" }}>
+                <span className={t.tiny}>
                   R:{signals.rating ?? 0}
                 </span>
               </div>
@@ -145,7 +140,6 @@ export default function CreatorCard({
           </div>
         </div>
 
-        {/* RIGHT SIDE */}
         <div
           style={{
             textAlign: "right",

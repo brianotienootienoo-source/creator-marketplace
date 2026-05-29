@@ -4,9 +4,8 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import CardShell from "@/app/components/ui/CardShell";
 import Button from "@/app/components/ui/Button";
+import { workspaceTypography as t } from "@/app/lib/design/workspaceTypography";
 import { spacing } from "@/app/lib/designTokens";
-
-// 🧠 6.3 Match feedback system
 import { recordMatchFeedback } from "@/app/lib/matches/matchFeedbackStore";
 
 type Props = {
@@ -76,12 +75,6 @@ export default function MarketplaceCard({
     if (target) router.push(target);
   };
 
-  const buttonText = loading
-    ? "Loading..."
-    : applied
-    ? "Applied"
-    : actionLabel;
-
   return (
     <CardShell
       style={{
@@ -90,10 +83,8 @@ export default function MarketplaceCard({
         display: "flex",
         flexDirection: "column",
         justifyContent: "space-between",
-        overflow: "hidden",
       }}
     >
-      {/* IMAGE */}
       {image && (
         <div
           style={{
@@ -102,7 +93,6 @@ export default function MarketplaceCard({
             overflow: "hidden",
             borderRadius: 8,
             marginBottom: spacing.sm,
-            flexShrink: 0,
           }}
         >
           <img
@@ -116,39 +106,28 @@ export default function MarketplaceCard({
         </div>
       )}
 
-      {/* CONTENT */}
-      <div
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          gap: 4,
-          flex: 1,
-        }}
-      >
-        <p style={{ fontWeight: 600, margin: 0 }}>{title}</p>
+      <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+        <p className={t.cardTitle} style={{ margin: 0 }}>
+          {title}
+        </p>
 
         {subtitle && (
-          <p style={{ fontSize: 12, color: "#666", margin: 0 }}>
+          <p className={t.body} style={{ margin: 0 }}>
             {subtitle}
           </p>
         )}
 
         {footer && (
-          <p style={{ fontSize: 12, color: "#999", margin: 0 }}>
+          <p className={t.meta} style={{ margin: 0 }}>
             {footer}
           </p>
         )}
       </div>
 
-      {/* BUTTON */}
       {actionLabel && (
         <div style={{ marginTop: spacing.sm }}>
-          <Button
-            onClick={handleClick}
-            disabled={loading || applied}
-            fullWidth
-          >
-            {buttonText}
+          <Button onClick={handleClick} disabled={loading || applied} fullWidth>
+            {loading ? "Loading..." : applied ? "Applied" : actionLabel}
           </Button>
         </div>
       )}

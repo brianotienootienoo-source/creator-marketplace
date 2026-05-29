@@ -1,6 +1,7 @@
 "use client";
 
 import UnifiedCard from "@/app/components/ui/UnifiedCard";
+import { workspaceTypography as t } from "@/app/lib/design/workspaceTypography";
 
 type Props = {
   title: string;
@@ -19,7 +20,6 @@ export default function BrandCampaignCard({
 }: Props) {
   return (
     <UnifiedCard onClick={onClick}>
-      {/* LEFT CONTENT */}
       <div
         style={{
           display: "flex",
@@ -41,73 +41,19 @@ export default function BrandCampaignCard({
           }}
         />
 
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            minWidth: 0,
-            flex: 1,
-          }}
-        >
-          <h4
-            style={{
-              margin: 0,
-              fontSize: 13,
-              lineHeight: "14px",
-              whiteSpace: "nowrap",
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-            }}
-          >
+        <div style={{ display: "flex", flexDirection: "column", minWidth: 0 }}>
+          <h4 className={t.cardTitle} style={{ margin: 0 }}>
             {title}
           </h4>
 
-          {niche && (
-            <span
-              style={{
-                fontSize: 11,
-                color: "#666",
-                whiteSpace: "nowrap",
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-              }}
-            >
-              {niche}
-            </span>
-          )}
+          {niche && <span className={t.body}>{niche}</span>}
 
-          {budget && (
-            <span
-              style={{
-                fontSize: 11,
-                marginTop: 2,
-                color: "#888",
-                fontWeight: 500,
-              }}
-            >
-              {budget}
-            </span>
-          )}
+          {budget && <span className={t.meta}>{budget}</span>}
         </div>
       </div>
 
-      {/* RIGHT SIDE */}
-      <div
-        style={{
-          textAlign: "right",
-          flexShrink: 0,
-          marginLeft: 10,
-        }}
-      >
-        <span
-          style={{
-            fontSize: 11,
-            color: "#999",
-            whiteSpace: "nowrap",
-          }}
-        >
-          Campaign
-        </span>
+      <div style={{ textAlign: "right" }}>
+        <span className={t.meta}>Campaign</span>
       </div>
     </UnifiedCard>
   );
