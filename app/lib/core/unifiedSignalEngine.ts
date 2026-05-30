@@ -18,30 +18,40 @@ export type UnifiedSignal = {
 };
 
 /**
- * SINGLE SOURCE OF TRUTH FOR ALL RANKING + MATCHING
+ * SINGLE SOURCE OF TRUTH FOR ALL INTELLIGENCE SCORING
+ * Used by:
+ * - feed ranking
+ * - marketplace matching
+ * - campaign scoring
+ * - creator ranking
  */
 export function getUnifiedSignal(
   entity: Creator | Brand | Campaign,
   context: Context
 ): UnifiedSignal {
-  const baseQuality = getQualityScore(entity);
+  const quality = getQualityScore(entity);
   const trend = getTrendScore(entity);
   const affinity = getAffinityScore(entity, context);
   const contextBoost = getContextBoost(context);
 
+  const nQuality = normalize(quality);
+  const nTrend = normalize(trend);
+  const nAffinity = normalize(affinity);
+  const nContext = normalize(contextBoost);
+
   const score =
-    baseQuality * 0.4 +
-    trend * 0.25 +
-    affinity * 0.25 +
-    contextBoost * 0.1;
+    nQuality * 0.4 +
+    nTrend * 0.25 +
+    nAffinity * 0.25 +
+    nContext * 0.1;
 
   return {
     score: clamp(score),
-    trend,
-    affinity,
-    quality: baseQuality,
-    confidence: computeConfidence(baseQuality, trend, affinity),
-    reasons: generateReasons(baseQuality, trend, affinity, context),
+    trend: nTrend,
+    affinity: nAffinity,
+    quality: nQuality,
+    confidence: computeConfidence(nQuality, nTrend, nAffinity),
+    reasons: generateReasons(nQuality, nTrend, nAffinity, context),
   };
 }
 
@@ -55,14 +65,14 @@ function getQualityScore(entity: any): number {
 }
 
 function getTrendScore(entity: any): number {
-  return entity?.trendScore ?? Math.random() * 60;
+  return entity?.trendScore ?? 50;
 }
 
 function getAffinityScore(entity: any, context: Context): number {
   const base = entity?.nicheAffinity ?? 50;
 
-  if (context.surface === "feed") return base * 1.1;
-  if (context.surface === "marketplace") return base * 1.3;
+  if (context.surface === "feed") return base * 1.05;
+  if (context.surface === "marketplace") return base * 1.15;
 
   return base;
 }
@@ -70,23 +80,30 @@ function getAffinityScore(entity: any, context: Context): number {
 function getContextBoost(context: Context): number {
   const hour = context.timeOfDay ?? new Date().getHours();
 
-  // simple attention curve
   if (hour >= 18 && hour <= 23) return 15;
   if (hour >= 9 && hour <= 12) return 10;
 
   return 5;
 }
 
-/* ---------------- HELPERS ---------------- */
+/* ---------------- NORMALIZATION ---------------- */
+
+function normalize(value: number): number {
+  return Math.max(0, Math.min(100, value));
+}
 
 function clamp(value: number): number {
   return Math.max(0, Math.min(100, value));
 }
 
+/* ---------------- CONFIDENCE ---------------- */
+
 function computeConfidence(q: number, t: number, a: number): number {
   const variance = Math.abs(q - t) + Math.abs(t - a);
   return clamp(100 - variance);
 }
+
+/* ---------------- REASONS ---------------- */
 
 function generateReasons(
   q: number,
@@ -97,10 +114,10 @@ function generateReasons(
   const reasons: string[] = [];
 
   if (q > 70) reasons.push("High quality signal");
-  if (t > 65) reasons.push("Rising trend momentum");
+  if (t > 65) reasons.push("Strong trend momentum");
   if (a > 60) reasons.push("Strong niche alignment");
 
-  reasons.push(`Context: ${context.surface}`);
+  reasons.push(`Surface: ${context.surface}`);
 
   return reasons;
 }

@@ -1,67 +1,29 @@
 import { Creator } from "../entities/creator";
 import { campaigns } from "@/app/data/campaigns";
+import { getUnifiedSignal } from "@/app/lib/core/unifiedSignalEngine";
 
-/**
- * 🎯 CAMPAIGN MATCH SUGGESTION ENGINE
- * Links creators to relevant campaigns based on:
- * - niche
- * - audience fit
- * - opportunity mode alignment
- */
-
-type CampaignMatch = {
-  id: string;
-  title: string;
-  brandId: string;
-  budget?: string;
-  score: number;
-  reason: string;
-};
-
-export function getCampaignMatches(creator: Creator): CampaignMatch[] {
-  const creatorNiche = creator.niche?.toLowerCase?.() ?? "";
+export function getCampaignMatches(creator: Creator) {
+  const signal = getUnifiedSignal(creator, {
+    surface: "marketplace",
+  });
 
   return campaigns
     .map((c) => {
-      let score = 0;
-      let reason = [];
+      let score = signal.affinity;
+      const reason: string[] = [];
 
-      const campaignTitle = c.title?.toLowerCase?.() ?? "";
-      const campaignBrand = c.brandId?.toLowerCase?.() ?? "";
-      const campaignDesc = (c.description ?? "").toLowerCase?.();
+      const niche = creator.niche?.toLowerCase?.() ?? "";
+      const title = c.title?.toLowerCase?.() ?? "";
 
-      // -------------------------
-      // NICHE MATCH
-      // -------------------------
-      if (campaignTitle.includes(creatorNiche)) {
-        score += 30;
+      if (title.includes(niche)) {
+        score += 25;
         reason.push("niche match");
       }
 
-      if (campaignDesc.includes(creatorNiche)) {
-        score += 20;
-        reason.push("audience alignment");
-      }
-
-      // -------------------------
-      // OPPORTUNITY MODE MATCH
-      // -------------------------
-      if (creator.opportunityModes?.includes("brand_deals")) {
+      if (signal.trend > 60) {
         score += 10;
-        reason.push("brand deal compatibility");
+        reason.push("trend alignment boost");
       }
-
-      if (creator.opportunityModes?.includes("live_performance")) {
-        if (campaignTitle.includes("event") || campaignTitle.includes("live")) {
-          score += 25;
-          reason.push("live performance fit");
-        }
-      }
-
-      // -------------------------
-      // DEFAULT BOOST (SAFETY)
-      // -------------------------
-      score += Math.min(10, (creator.ratingScore ?? 0) / 10);
 
       return {
         id: c.id,

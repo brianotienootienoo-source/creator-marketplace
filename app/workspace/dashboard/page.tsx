@@ -1,3 +1,8 @@
+"use client";
+
+import { getProposalAnalytics } from "@/app/lib/workspace/proposals/proposalAnalytics";
+import { getCreatorThreads } from "@/app/lib/messages/getThreads";
+
 const stats = [
   { label: "Profile Views", value: "12.4K", change: "+18%" },
   { label: "Campaign Invites", value: "28", change: "+6%" },
@@ -12,17 +17,43 @@ const activity = [
   "Your engagement is trending upward",
 ];
 
+const opportunities = [
+  "Summer Lifestyle Campaign",
+  "Fitness Creator Partnership",
+  "Streetwear Creator Feature",
+];
+
 export default function DashboardPage() {
+  const analytics = getProposalAnalytics("creator-1");
+
+  // real message system integration
+  const threads = getCreatorThreads("creator-1");
+
   return (
     <div className="space-y-6">
-      {/* HUB HEADER */}
-      <div className="space-y-1">
-        <h1 className="text-[26px] font-bold text-black tracking-tight">
-          Dashboard
-        </h1>
-        <p className="text-sm text-neutral-500">
-          Monitor your creator activity and marketplace presence.
-        </p>
+      {/* HEADER */}
+      <div className="rounded-3xl border border-[#e5e7eb] bg-white p-6 shadow-sm">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <div>
+            <h1 className="text-[28px] font-bold tracking-tight text-black">
+              Dashboard
+            </h1>
+
+            <p className="mt-2 text-sm text-neutral-500">
+              Monitor your creator activity and marketplace presence.
+            </p>
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            <span className="rounded-full bg-[#f5f7fb] px-4 py-2 text-xs text-neutral-700">
+              {analytics.total} Total Proposals
+            </span>
+
+            <span className="rounded-full bg-[#f5f7fb] px-4 py-2 text-xs text-neutral-700">
+              {analytics.pending} Pending
+            </span>
+          </div>
+        </div>
       </div>
 
       {/* STATS */}
@@ -30,25 +61,21 @@ export default function DashboardPage() {
         {stats.map((stat) => (
           <div
             key={stat.label}
-            className="rounded-2xl border border-[#e5e7eb] bg-white p-4 shadow-sm hover:shadow-md transition"
+            className="rounded-2xl border border-[#e5e7eb] bg-white p-4 shadow-sm transition hover:shadow-md"
           >
             <p className="text-xs text-neutral-500">{stat.label}</p>
 
             <div className="mt-3 flex items-end justify-between">
-              <h2 className="text-2xl font-bold text-black">
-                {stat.value}
-              </h2>
-
-              <span className="text-xs text-neutral-500">
-                {stat.change}
-              </span>
+              <h2 className="text-2xl font-bold text-black">{stat.value}</h2>
+              <span className="text-xs text-neutral-500">{stat.change}</span>
             </div>
           </div>
         ))}
       </div>
 
-      {/* CONTENT */}
-      <div className="grid gap-6 xl:grid-cols-[1.3fr_0.7fr]">
+      {/* MAIN GRID */}
+      <div className="grid gap-6 xl:grid-cols-[1.4fr_0.6fr]">
+        {/* PERFORMANCE */}
         <div className="rounded-2xl border border-[#e5e7eb] bg-white p-5 shadow-sm">
           <h3 className="text-base font-semibold text-black">
             Performance Snapshot
@@ -69,6 +96,131 @@ export default function DashboardPage() {
           </div>
         </div>
 
+        {/* QUICK ACTIONS */}
+        <div className="rounded-2xl border border-[#e5e7eb] bg-white p-5 shadow-sm">
+          <h3 className="text-base font-semibold text-black">Quick Actions</h3>
+
+          <div className="mt-4 space-y-3">
+            <button className="w-full rounded-xl border border-[#e5e7eb] px-4 py-3 text-left text-sm">
+              Browse Opportunities
+            </button>
+
+            <button className="w-full rounded-xl border border-[#e5e7eb] px-4 py-3 text-left text-sm">
+              Open Messages
+            </button>
+
+            <button className="w-full rounded-xl border border-[#e5e7eb] px-4 py-3 text-left text-sm">
+              Update Creator Profile
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* PROPOSAL ANALYTICS */}
+      <div className="rounded-2xl border border-[#e5e7eb] bg-white p-5 shadow-sm">
+        <h3 className="text-base font-semibold text-black">
+          Proposal Overview
+        </h3>
+
+        <div className="mt-4 grid gap-4 md:grid-cols-4">
+          <div className="rounded-xl border border-[#f1f5f9] bg-[#fafafa] p-4">
+            <p className="text-xs text-neutral-500">Total</p>
+            <p className="mt-2 text-xl font-semibold text-black">
+              {analytics.total}
+            </p>
+          </div>
+
+          <div className="rounded-xl border border-[#f1f5f9] bg-[#fafafa] p-4">
+            <p className="text-xs text-neutral-500">Pending</p>
+            <p className="mt-2 text-xl font-semibold text-black">
+              {analytics.pending}
+            </p>
+          </div>
+
+          <div className="rounded-xl border border-[#f1f5f9] bg-[#fafafa] p-4">
+            <p className="text-xs text-neutral-500">Accepted</p>
+            <p className="mt-2 text-xl font-semibold text-black">
+              {analytics.accepted}
+            </p>
+          </div>
+
+          <div className="rounded-xl border border-[#f1f5f9] bg-[#fafafa] p-4">
+            <p className="text-xs text-neutral-500">Rejected</p>
+            <p className="mt-2 text-xl font-semibold text-black">
+              {analytics.rejected}
+            </p>
+          </div>
+        </div>
+
+        <div className="mt-5 space-y-2">
+          <p className="text-sm font-medium text-black">
+            Recent Proposals
+          </p>
+
+          {analytics.recent.map((p) => (
+            <div
+              key={p.id}
+              className="rounded-lg border border-[#f1f5f9] bg-[#fafafa] p-3 text-sm text-neutral-700"
+            >
+              {p.opportunityId} • {p.status}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* WORKSPACE PANELS */}
+      <div className="grid gap-6 lg:grid-cols-3">
+        {/* OPPORTUNITIES */}
+        <div className="rounded-2xl border border-[#e5e7eb] bg-white p-5 shadow-sm">
+          <h3 className="text-base font-semibold text-black">
+            Active Opportunities
+          </h3>
+
+          <div className="mt-4 space-y-3">
+            {opportunities.map((item) => (
+              <div
+                key={item}
+                className="rounded-xl border border-[#f1f5f9] bg-[#fafafa] p-3"
+              >
+                <p className="text-sm text-black">{item}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* MESSAGES */}
+        <div className="rounded-2xl border border-[#e5e7eb] bg-white p-5 shadow-sm">
+          <h3 className="text-base font-semibold text-black">
+            Recent Messages
+          </h3>
+
+          <div className="mt-4 space-y-3">
+            {threads.map((thread) => (
+              <div
+                key={thread.id}
+                className="rounded-xl border border-[#f1f5f9] bg-[#fafafa] p-3"
+              >
+                <div className="flex items-center justify-between">
+                  <p className="text-sm font-medium text-black">
+                    Brand: {thread.brandId}
+                  </p>
+
+                  {thread.unreadCount > 0 && (
+                    <span className="rounded-full bg-black px-2 py-0.5 text-xs text-white">
+                      {thread.unreadCount}
+                    </span>
+                  )}
+                </div>
+
+                <p className="mt-1 text-xs text-neutral-600">
+                  {thread.lastMessage}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* ACTIVITY */}
         <div className="rounded-2xl border border-[#e5e7eb] bg-white p-5 shadow-sm">
           <h3 className="text-base font-semibold text-black">
             Recent Activity
@@ -80,7 +232,7 @@ export default function DashboardPage() {
                 key={item}
                 className="rounded-xl border border-[#f1f5f9] bg-[#fafafa] p-3"
               >
-                <p className="text-xs text-neutral-700">{item}</p>
+                <p className="text-sm text-neutral-700">{item}</p>
               </div>
             ))}
           </div>

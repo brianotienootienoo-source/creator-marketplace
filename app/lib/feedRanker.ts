@@ -1,41 +1,41 @@
-import { buildMatches } from "./matchEngine";
+import { buildMatches } from "./matches/matchEngine";
+import { getUnifiedSignal } from "./core/unifiedSignalEngine";
 
 type RankedItem = {
   creator: any;
   brand: any;
   score: number;
-  boostScore: number;
   finalScore: number;
 };
 
-/* =========================
-   FEED RANKING ENGINE
-   (Phase 4 core logic)
-========================= */
-
+/**
+ * FEED RANKING = PURE CONSUMER OF UNIFIED INTELLIGENCE BRAIN
+ * NO LOCAL SCORING LOGIC ALLOWED
+ */
 export function rankFeed(brandId?: string) {
   const matches = buildMatches(brandId);
 
   return matches
     .map((m) => {
-      // Base score from match engine
-      const base = m.score;
+      const signal = getUnifiedSignal(m.creator, {
+        surface: "feed",
+      });
 
-      // 🔥 engagement boost (future hook)
       const engagementBoost =
-        (m.creator?.engagementRate ?? 0) * 20;
+        (m.creator?.engagementRate ?? 0) * 10;
 
-      // 🔥 popularity smoothing
       const followerBoost =
         Math.min((m.creator?.followers ?? 0) / 5000, 10);
 
-      const finalScore = base + engagementBoost + followerBoost;
+      const finalScore =
+        signal.score +
+        engagementBoost +
+        followerBoost;
 
       return {
         creator: m.creator,
         brand: m.brand,
-        score: base,
-        boostScore: engagementBoost + followerBoost,
+        score: signal.score,
         finalScore,
       };
     })
