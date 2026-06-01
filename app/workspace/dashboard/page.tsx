@@ -1,6 +1,6 @@
 "use client";
 
-import { getProposalAnalytics } from "@/app/lib/workspace/proposals/proposalAnalytics";
+import { useRouter } from "next/navigation";
 import { getProposalIntelligence } from "@/app/lib/workspace/proposals/proposalIntelligenceBridge";
 import { getCreatorThreads } from "@/app/lib/messages/getThreads";
 
@@ -12,14 +12,13 @@ const stats = [
 ];
 
 export default function DashboardPage() {
-  const analytics = getProposalAnalytics("creator-1");
+  const router = useRouter();
 
-  const intelligence = getProposalIntelligence("c1");
+  const intelligence = getProposalIntelligence("creator-1");
+  const threads = getCreatorThreads("creator-1");
 
   const opportunities = intelligence.recommendations;
   const activity = intelligence.recentActivity;
-
-  const threads = getCreatorThreads("creator-1");
 
   return (
     <div className="space-y-6">
@@ -38,11 +37,11 @@ export default function DashboardPage() {
 
           <div className="flex flex-wrap gap-2">
             <span className="rounded-full bg-[#f5f7fb] px-4 py-2 text-xs text-neutral-700">
-              {analytics.total} Total Proposals
+              {intelligence.summary.totalOpportunities} Total Opportunities
             </span>
 
             <span className="rounded-full bg-[#f5f7fb] px-4 py-2 text-xs text-neutral-700">
-              {analytics.pending} Pending
+              {intelligence.summary.strongMatches} Strong Matches
             </span>
           </div>
         </div>
@@ -58,8 +57,12 @@ export default function DashboardPage() {
             <p className="text-xs text-neutral-500">{stat.label}</p>
 
             <div className="mt-3 flex items-end justify-between">
-              <h2 className="text-2xl font-bold text-black">{stat.value}</h2>
-              <span className="text-xs text-neutral-500">{stat.change}</span>
+              <h2 className="text-2xl font-bold text-black">
+                {stat.value}
+              </h2>
+              <span className="text-xs text-neutral-500">
+                {stat.change}
+              </span>
             </div>
           </div>
         ))}
@@ -75,7 +78,10 @@ export default function DashboardPage() {
 
           <div className="mt-6 flex h-64 items-end gap-3">
             {[35, 55, 40, 75, 60, 90, 70].map((h, i) => (
-              <div key={i} className="flex flex-1 flex-col items-center gap-2">
+              <div
+                key={i}
+                className="flex flex-1 flex-col items-center gap-2"
+              >
                 <div
                   className="w-full rounded-t-2xl bg-black/80"
                   style={{ height: `${h}%` }}
@@ -88,20 +94,31 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* QUICK ACTIONS */}
+        {/* QUICK ACTIONS (NOW CLICKABLE) */}
         <div className="rounded-2xl border border-[#e5e7eb] bg-white p-5 shadow-sm">
-          <h3 className="text-base font-semibold text-black">Quick Actions</h3>
+          <h3 className="text-base font-semibold text-black">
+            Quick Actions
+          </h3>
 
           <div className="mt-4 space-y-3">
-            <button className="w-full rounded-xl border border-[#e5e7eb] px-4 py-3 text-left text-sm">
+            <button
+              onClick={() => router.push("/workspace/opportunities")}
+              className="w-full rounded-xl border border-[#e5e7eb] px-4 py-3 text-left text-sm hover:bg-[#f9fafb]"
+            >
               Browse Opportunities
             </button>
 
-            <button className="w-full rounded-xl border border-[#e5e7eb] px-4 py-3 text-left text-sm">
+            <button
+              onClick={() => router.push("/workspace/messages")}
+              className="w-full rounded-xl border border-[#e5e7eb] px-4 py-3 text-left text-sm hover:bg-[#f9fafb]"
+            >
               Open Messages
             </button>
 
-            <button className="w-full rounded-xl border border-[#e5e7eb] px-4 py-3 text-left text-sm">
+            <button
+              onClick={() => router.push("/workspace/profile")}
+              className="w-full rounded-xl border border-[#e5e7eb] px-4 py-3 text-left text-sm hover:bg-[#f9fafb]"
+            >
               Update Creator Profile
             </button>
           </div>
@@ -114,49 +131,27 @@ export default function DashboardPage() {
           Proposal Overview
         </h3>
 
-        <div className="mt-4 grid gap-4 md:grid-cols-4">
+        <div className="mt-4 grid gap-4 md:grid-cols-3">
           <div className="rounded-xl border border-[#f1f5f9] bg-[#fafafa] p-4">
-            <p className="text-xs text-neutral-500">Total</p>
+            <p className="text-xs text-neutral-500">Total Opportunities</p>
             <p className="mt-2 text-xl font-semibold text-black">
-              {analytics.total}
+              {intelligence.summary.totalOpportunities}
             </p>
           </div>
 
           <div className="rounded-xl border border-[#f1f5f9] bg-[#fafafa] p-4">
-            <p className="text-xs text-neutral-500">Pending</p>
+            <p className="text-xs text-neutral-500">Strong Matches</p>
             <p className="mt-2 text-xl font-semibold text-black">
-              {analytics.pending}
+              {intelligence.summary.strongMatches}
             </p>
           </div>
 
           <div className="rounded-xl border border-[#f1f5f9] bg-[#fafafa] p-4">
-            <p className="text-xs text-neutral-500">Accepted</p>
+            <p className="text-xs text-neutral-500">Warm Matches</p>
             <p className="mt-2 text-xl font-semibold text-black">
-              {analytics.accepted}
+              {intelligence.summary.warmMatches}
             </p>
           </div>
-
-          <div className="rounded-xl border border-[#f1f5f9] bg-[#fafafa] p-4">
-            <p className="text-xs text-neutral-500">Rejected</p>
-            <p className="mt-2 text-xl font-semibold text-black">
-              {analytics.rejected}
-            </p>
-          </div>
-        </div>
-
-        <div className="mt-5 space-y-2">
-          <p className="text-sm font-medium text-black">
-            Recent Proposals
-          </p>
-
-          {analytics.recent.map((p) => (
-            <div
-              key={p.id}
-              className="rounded-lg border border-[#f1f5f9] bg-[#fafafa] p-3 text-sm text-neutral-700"
-            >
-              {p.opportunityId} • {p.status}
-            </div>
-          ))}
         </div>
       </div>
 
@@ -173,32 +168,29 @@ export default function DashboardPage() {
         </div>
 
         <div className="mt-4 grid gap-3">
-          {intelligence.topSignals.map((item) => (
-            <div
-              key={item.campaignId}
-              className="rounded-xl border border-[#f1f5f9] bg-[#fafafa] p-4"
-            >
-              <div className="flex items-center justify-between">
-                <p className="font-medium text-black">
-                  {item.title}
-                </p>
+          {intelligence.topSignals.length ? (
+            intelligence.topSignals.map((item) => (
+              <div
+                key={item.campaignId}
+                className="rounded-xl border border-[#f1f5f9] bg-[#fafafa] p-4"
+              >
+                <div className="flex items-center justify-between">
+                  <p className="font-medium text-black">{item.title}</p>
 
-                <span className="text-xs text-neutral-500">
-                  {item.signal.relevanceScore}%
-                </span>
-              </div>
+                  <span className="text-xs text-neutral-500">
+                    {item.signal.relevanceScore}%
+                  </span>
+                </div>
 
-              <div className="mt-2 flex gap-4 text-xs text-neutral-500">
-                <span>
-                  Conversion: {item.signal.conversionProbability}%
-                </span>
+                <div className="mt-2 flex gap-4 text-xs text-neutral-500">
+                  <span>
+                    Conversion: {item.signal.conversionProbability}%
+                  </span>
+                  <span>
+                    Confidence: {item.signal.confidence}%
+                  </span>
+                </div>
 
-                <span>
-                  Confidence: {item.signal.confidence}%
-                </span>
-              </div>
-
-              {item.signal.reasons.length > 0 && (
                 <div className="mt-3 flex flex-wrap gap-2">
                   {item.signal.reasons.map((reason) => (
                     <span
@@ -209,9 +201,13 @@ export default function DashboardPage() {
                     </span>
                   ))}
                 </div>
-              )}
+              </div>
+            ))
+          ) : (
+            <div className="text-sm text-neutral-500">
+              No opportunities detected yet
             </div>
-          ))}
+          )}
         </div>
       </div>
 
@@ -242,7 +238,7 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* MESSAGES */}
+        {/* MESSAGES (NOW CLICKABLE) */}
         <div className="rounded-2xl border border-[#e5e7eb] bg-white p-5 shadow-sm">
           <h3 className="text-base font-semibold text-black">
             Recent Messages
@@ -252,7 +248,10 @@ export default function DashboardPage() {
             {threads.map((thread) => (
               <div
                 key={thread.id}
-                className="rounded-xl border border-[#f1f5f9] bg-[#fafafa] p-3"
+                onClick={() =>
+                  router.push(`/workspace/messages/${thread.id}`)
+                }
+                className="cursor-pointer rounded-xl border border-[#f1f5f9] bg-[#fafafa] p-3 hover:bg-[#f5f5f5]"
               >
                 <div className="flex items-center justify-between">
                   <p className="text-sm font-medium text-black">
