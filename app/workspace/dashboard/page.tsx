@@ -1,6 +1,7 @@
 "use client";
 
 import { getProposalAnalytics } from "@/app/lib/workspace/proposals/proposalAnalytics";
+import { getProposalIntelligence } from "@/app/lib/workspace/proposals/proposalIntelligenceBridge";
 import { getCreatorThreads } from "@/app/lib/messages/getThreads";
 
 const stats = [
@@ -10,23 +11,14 @@ const stats = [
   { label: "Saved By Brands", value: "94", change: "+12%" },
 ];
 
-const activity = [
-  "A fashion brand viewed your profile",
-  "Your creator visibility increased this week",
-  "New campaign opportunities are available",
-  "Your engagement is trending upward",
-];
-
-const opportunities = [
-  "Summer Lifestyle Campaign",
-  "Fitness Creator Partnership",
-  "Streetwear Creator Feature",
-];
-
 export default function DashboardPage() {
   const analytics = getProposalAnalytics("creator-1");
 
-  // real message system integration
+  const intelligence = getProposalIntelligence("c1");
+
+  const opportunities = intelligence.recommendations;
+  const activity = intelligence.recentActivity;
+
   const threads = getCreatorThreads("creator-1");
 
   return (
@@ -168,6 +160,61 @@ export default function DashboardPage() {
         </div>
       </div>
 
+      {/* OPPORTUNITY INTELLIGENCE */}
+      <div className="rounded-2xl border border-[#e5e7eb] bg-white p-5 shadow-sm">
+        <div className="flex items-center justify-between">
+          <h3 className="text-base font-semibold text-black">
+            Opportunity Intelligence
+          </h3>
+
+          <span className="rounded-full bg-[#f5f7fb] px-3 py-1 text-xs text-neutral-700">
+            {intelligence.proposalHealth.label}
+          </span>
+        </div>
+
+        <div className="mt-4 grid gap-3">
+          {intelligence.topSignals.map((item) => (
+            <div
+              key={item.campaignId}
+              className="rounded-xl border border-[#f1f5f9] bg-[#fafafa] p-4"
+            >
+              <div className="flex items-center justify-between">
+                <p className="font-medium text-black">
+                  {item.title}
+                </p>
+
+                <span className="text-xs text-neutral-500">
+                  {item.signal.relevanceScore}%
+                </span>
+              </div>
+
+              <div className="mt-2 flex gap-4 text-xs text-neutral-500">
+                <span>
+                  Conversion: {item.signal.conversionProbability}%
+                </span>
+
+                <span>
+                  Confidence: {item.signal.confidence}%
+                </span>
+              </div>
+
+              {item.signal.reasons.length > 0 && (
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {item.signal.reasons.map((reason) => (
+                    <span
+                      key={reason}
+                      className="rounded-full border border-[#e5e7eb] bg-white px-2 py-1 text-[11px] text-neutral-600"
+                    >
+                      {reason}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+
       {/* WORKSPACE PANELS */}
       <div className="grid gap-6 lg:grid-cols-3">
         {/* OPPORTUNITIES */}
@@ -179,10 +226,17 @@ export default function DashboardPage() {
           <div className="mt-4 space-y-3">
             {opportunities.map((item) => (
               <div
-                key={item}
+                key={item.campaignId}
                 className="rounded-xl border border-[#f1f5f9] bg-[#fafafa] p-3"
               >
-                <p className="text-sm text-black">{item}</p>
+                <p className="text-sm font-medium text-black">
+                  {item.title}
+                </p>
+
+                <p className="mt-1 text-xs text-neutral-500">
+                  Relevance {item.relevanceScore}% • Conversion{" "}
+                  {item.conversionProbability}%
+                </p>
               </div>
             ))}
           </div>
@@ -229,10 +283,16 @@ export default function DashboardPage() {
           <div className="mt-4 space-y-3">
             {activity.map((item) => (
               <div
-                key={item}
+                key={item.id}
                 className="rounded-xl border border-[#f1f5f9] bg-[#fafafa] p-3"
               >
-                <p className="text-sm text-neutral-700">{item}</p>
+                <p className="text-sm text-neutral-700">
+                  {item.title}
+                </p>
+
+                <p className="mt-1 text-xs text-neutral-500">
+                  {item.status}
+                </p>
               </div>
             ))}
           </div>
